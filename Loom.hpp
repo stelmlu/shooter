@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cstdint>
 #include <unordered_map>
 #include <unordered_set>
@@ -7,6 +6,7 @@
 #include <typeindex>
 #include <memory>
 #include <algorithm>
+#include "Component/ScriptComponent.hpp"
 
 using EntityId = uint32_t;
 
@@ -157,6 +157,13 @@ public:
             addComponentDirectly(newId, typeIndex, newComponentPtr, componentSize);
         }
 
+        // Call setup for the scriopt
+        for (auto& [typeIndex, componentIndex] : idToComponentIndex[sourceId]) {
+            if(typeIndex == std::type_index(typeid(ScriptComponent))) {
+                GetComponent<ScriptComponent>(newId).OnSetup(newId);
+            }
+        }
+
         // Copy the connection
         auto connectionFindResult = connectionsMap.find(sourceId);
         if(connectionFindResult != connectionsMap.end()) {
@@ -186,17 +193,25 @@ public:
     }
 
     template<typename T>
-    void EmplaceComponent(EntityId id, T&& component) {
+    T& EmplaceComponent(EntityId id, T&& component) {
         auto typeIndex = std::type_index(typeid(T));
         auto& indexMap = idToComponentIndex[id];
+        uint8_t* data;
         if (indexMap.find(typeIndex) != indexMap.end()) {
             size_t index = indexMap[typeIndex];
-            destroyComponent<T>(componentStorage[typeIndex].data() + index * sizeof(T));
+            data = componentStorage[typeIndex].data() + index * sizeof(T);
+            if(typeIndex == std::type_index(typeid(ScriptComponent))) {
+                reinterpret_cast<ScriptComponent*>(data)->OnDestroyed(id);
+                // GetComponent<ScriptComponent>(id).OnDestroyed(id);
+            }
+            destroyComponent<T>(data);
             new (componentStorage[typeIndex].data() + index * sizeof(T)) T(std::forward<T>(component));
         } else {
             indexMap[typeIndex] = componentStorage[typeIndex].size() / sizeof(T);
             componentStorage[typeIndex].resize(componentStorage[typeIndex].size() + sizeof(T));
-            new (componentStorage[typeIndex].data() + indexMap[typeIndex] * sizeof(T)) T(std::forward<T>(component));
+            size_t index = indexMap[typeIndex];
+            data = componentStorage[typeIndex].data() + index * sizeof(T);
+            new (data) T(std::forward<T>(component));
             typeToEntities[typeIndex].emplace(id);
             componentSizes[std::type_index(typeid(T))] = sizeof(T);
             if (copyConstructors.find(std::type_index(typeid(T))) == copyConstructors.end()) {
@@ -207,12 +222,21 @@ public:
             }
             queryCache.clear(); // Invalidate the cashe
         }
+        // Call setup for the script
+        if(typeIndex == std::type_index(typeid(ScriptComponent))) {
+            reinterpret_cast<ScriptComponent*>(data)->OnSetup(id);
+            // GetComponent<ScriptComponent>(id).OnSetup(id);
+        }
+        return *reinterpret_cast<T*>(data);
     }
 
     template<typename T>
     void RemoveComponent(EntityId id) {
         auto typeIndex = std::type_index(typeid(T));
         if (idToComponentIndex[id].find(typeIndex) != idToComponentIndex[id].end()) {
+            if(typeIndex == std::type_index(typeid(ScriptComponent))) {
+                GetComponent<ScriptComponent>(id).OnDestroyed(id);
+            }
             size_t index = idToComponentIndex[id][typeIndex];
             auto& storage = componentStorage[typeIndex];
             destroyComponent<T>(storage.data() + index * sizeof(T));

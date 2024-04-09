@@ -9,10 +9,34 @@
 #include "SDLRenderer.hpp"
 #include "Component/PositionComponent.hpp"
 #include "Component/TextureComponent.hpp"
+#include "Component/ScriptComponent.hpp"
 
 // Screen dimension constants
 constexpr int SCREEN_WIDTH = 800;
 constexpr int SCREEN_HEIGHT = 600;
+
+struct BaseScript {
+
+    void OnSetup(EntityId self) {
+        std::cout << "Base OnSetup: " << self << "\n";
+    }
+
+    void OnEvent(EntityId self, const SDL_Event& event) {}
+
+    void OnUpdate(EntityId self, float dt) {}
+
+    void OnCollision(EntityId self, EntityId other) {}
+
+    void OnDestroyed(EntityId self) {
+        std::cout << "OnDestroy: " << self << "\n";
+    }
+};
+
+struct MyScript: BaseScript {
+    void OnSetup(EntityId self) {
+        std::cout << "My OnSetup: " << self << "\n";
+    }
+};
 
 World SetupGamePlay(const SDLRenderer& renderer) {
     World world;
@@ -20,6 +44,9 @@ World SetupGamePlay(const SDLRenderer& renderer) {
     const auto player = world.CreateEntity();
     world.EmplaceComponent(player, PositionComponent{ 100.0f, 100.0f });
     world.EmplaceComponent(player, TextureComponent(renderer, "gfx/player.png"));
+    world.EmplaceComponent(player, ScriptComponent( MyScript{} ));
+
+    const auto foo = world.CloneEntity(player);
 
     return world;
 }
