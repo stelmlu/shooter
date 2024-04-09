@@ -4,6 +4,7 @@
 #include <memory>
 #include <stdexcept>
 #include "Loom.hpp"
+#include "Settings.hpp"
 #include "SDLSystem.hpp"
 #include "SDLWindow.hpp"
 #include "SDLRenderer.hpp"
@@ -11,39 +12,74 @@
 #include "Component/TextureComponent.hpp"
 #include "Component/ScriptComponent.hpp"
 #include "Component/PriorityQueueComponent.hpp"
-
-// Screen dimension constants
-constexpr int SCREEN_WIDTH = 800;
-constexpr int SCREEN_HEIGHT = 600;
+#include "Component/VelocityComponent.hpp"
+#include "Component/KeyStateComponent.hpp"
+#include "Component/PriorityQueueComponent.hpp"
+#include "Script/PlayerMoveInputScript.hpp"
 
 World SetupPlayground(const SDLRenderer& renderer) {
     World world;
 
     const auto player = world.CreateEntity();
     world.EmplaceComponent(player, PositionComponent{ 100.0f, 100.0f });
-    world.EmplaceComponent(player, TextureComponent(renderer, "gfx/player.png"));
+    world.EmplaceComponent(player, TextureComponent{ renderer, "gfx/player.png" });
+    world.EmplaceComponent(player, PriorityQueueComponent<ScriptComponent>())
+        .Add(ScriptComponent{ PlayerMoveInputScript{ world, player } }, 10);
 
     return world;
 }
 
-void InvokeCallOnUpdate(World& world, float dt) {
+void InvokeCallOnUpdate(World& world) {
     // Call if th player has a ScriptComponent
     for(const auto id : world.Query<ScriptComponent>()) {
-        world.GetComponent<ScriptComponent>(id).OnUpdate(id, dt);
+        world.GetComponent<ScriptComponent>(id).OnUpdate(id, SECOND_PER_UPDATE);
     }
+
     // Call if the player has a PriorityQueueComponent
     for(const auto id : world.Query<PriorityQueueComponent<ScriptComponent>>()) {
         for(auto& scriptComponent : world.GetComponent<PriorityQueueComponent<ScriptComponent>>(id)) {
-            scriptComponent.second.OnUpdate(id, dt);
+            scriptComponent.second.OnUpdate(id, SECOND_PER_UPDATE);
         }
     }
 }
 
-void InvokeDrawTexture(World& world) {
+void InvokeCallOnEvent(World& world, const SDL_Event& event) {
+    // Call if th player has a ScriptComponent
+    for(const auto id : world.Query<ScriptComponent>()) {
+        world.GetComponent<ScriptComponent>(id).OnEvent(id, event);
+    }
+    // Call if the player has a PriorityQueueComponent
+    for(const auto id : world.Query<PriorityQueueComponent<ScriptComponent>>()) {
+        for(auto& scriptComponent : world.GetComponent<PriorityQueueComponent<ScriptComponent>>(id)) {
+            scriptComponent.second.OnEvent(id, event);
+        }
+    }
+}
+
+void InvokeMovement(World& world) {
+    for(const auto id : world.Query<PositionComponent, VelocityComponent>()) {
+        auto& position = world.GetComponent<PositionComponent>(id);
+        const auto& velocity = world.GetComponent<VelocityComponent>(id);
+        position.x = position.x + velocity.dx * SECOND_PER_UPDATE;
+        position.y = position.y + velocity.dy * SECOND_PER_UPDATE;
+    }
+}
+
+void InvokeDrawTexture(World& world, float interpolation) {
     for(const auto id : world.Query<PositionComponent, TextureComponent>()) {
-        const auto& position = world.GetComponent<PositionComponent>(id);
-        const auto& texture = world.GetComponent<TextureComponent>(id);
-        texture.Draw(position.x, position.y);
+        if(world.HasComponent<VelocityComponent>(id)) {
+            const auto& position = world.GetComponent<PositionComponent>(id);
+            const auto& velocity = world.GetComponent<VelocityComponent>(id);
+            const auto& texture = world.GetComponent<TextureComponent>(id);
+            float x = position.x + velocity.dx * interpolation * SECOND_PER_UPDATE;
+            float y = position.y + velocity.dy * interpolation * SECOND_PER_UPDATE;
+            texture.Draw(x, y);
+        }
+        else {
+            const auto& position = world.GetComponent<PositionComponent>(id);
+            const auto& texture = world.GetComponent<TextureComponent>(id);
+            texture.Draw(position.x, position.y);
+        }
     }
 }
 
@@ -58,18 +94,33 @@ int main() {
 
         World world = SetupPlayground(renderer);
 
+        float ms_per_update = SECOND_PER_UPDATE * 1000.0f;
+        float previous = static_cast<float>(SDL_GetTicks64());
+        float lag = 0.0f;
         while (!quit) {
+            float current = static_cast<float>(SDL_GetTicks64());
+            float elapsed = current - previous;
+            previous = current;
+            lag += elapsed;
+
             while (SDL_PollEvent(&event) != 0) {
                 if (event.type == SDL_QUIT) {
                     quit = true;
                 }
+                InvokeCallOnEvent(world, event);
             }
 
-            InvokeCallOnUpdate(world, 1.0f / 60.0f);
+            while(lag >= ms_per_update) {
+                InvokeCallOnUpdate(world);
+                InvokeMovement(world);
+                lag -= ms_per_update;
+            }
 
             SDL_RenderClear(renderer.get());
-            InvokeDrawTexture(world);
+            InvokeDrawTexture(world, lag / ms_per_update);
             SDL_RenderPresent(renderer.get());
+
+            SDL_Delay(16);
         }
     } catch (const std::runtime_error& e) {
         std::cerr << "Error: " << e.what() << std::endl;
