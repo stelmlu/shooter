@@ -60,15 +60,15 @@ void InvokeMovement(World& world) {
     for(const auto id : world.Query<PositionComponent, VelocityComponent>()) {
         auto& position = world.GetComponent<PositionComponent>(id);
         const auto& velocity = world.GetComponent<VelocityComponent>(id);
-        position.x = position.x + velocity.dx * SECOND_PER_UPDATE;
-        position.y = position.y + velocity.dy * SECOND_PER_UPDATE;
+        position.x += velocity.dx * SECOND_PER_UPDATE;
+        position.y += velocity.dy * SECOND_PER_UPDATE;
     }
 }
 
 void InvokeDrawTexture(World& world, float interpolation) {
     for(const auto id : world.Query<PositionComponent, TextureComponent>()) {
         if(world.HasComponent<VelocityComponent>(id)) {
-            const auto& position = world.GetComponent<PositionComponent>(id);
+            auto& position = world.GetComponent<PositionComponent>(id);
             const auto& velocity = world.GetComponent<VelocityComponent>(id);
             const auto& texture = world.GetComponent<TextureComponent>(id);
             float x = position.x + velocity.dx * interpolation * SECOND_PER_UPDATE;
