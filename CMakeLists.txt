@@ -23,3 +23,19 @@ add_executable(${PROJECT_NAME} Main.cpp)
 
 # Link against the SDL2 library
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image)
+
+# Gfx directory to copy
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/gfx")
+set(DEST_DIR "${CMAKE_BINARY_DIR}")
+
+if(UNIX)
+    set(COPY_COMMAND rsync -ru --delete)
+elseif(WIN32)
+    set(COPY_COMMAND robocopy /E /xo /purge)
+endif()
+
+add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${COPY_COMMAND} ${SOURCE_DIR} ${DEST_DIR}
+    COMMENT "Incrementally copying gfx directory to build directory"
+)
