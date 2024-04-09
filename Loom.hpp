@@ -46,16 +46,17 @@ private:
         }
     };
 
-    struct EntityIdPairHash {
-        std::size_t operator() (const std::pair<EntityId, EntityId> &pair) const {
-            auto hash1 = std::hash<EntityId>{}(pair.first);
-            auto hash2 = std::hash<EntityId>{}(pair.second);
-            return hash1 ^ hash2;  // XOR or other combination
+    struct PairHash {
+        template <typename TFirst, typename TSecond>
+        std::size_t operator()(const std::pair<TFirst, TSecond>& pair) const {
+            auto hash1 = std::hash<TFirst>{}(pair.first);
+            auto hash2 = std::hash<TSecond>{}(pair.second);
+            return hash1 ^ (hash2 + 0x9e3779b9 + (hash1 << 6) + (hash1 >> 2));
         }
     };
 
+
     EntityId nextId = 1;
-    std::vector<EntityId> freeIds;
     std::unordered_map<EntityId, std::unordered_map<std::type_index, size_t>> idToComponentIndex;
     std::unordered_map<std::type_index, std::vector<uint8_t>> componentStorage;
     std::unordered_map<std::type_index, size_t> componentSizes;
@@ -63,7 +64,8 @@ private:
     std::unordered_map<std::type_index, std::function<void*(void*)>> copyConstructors;
     std::unordered_map<std::type_index, void(*)(void*)> destructors;
     std::unordered_map<QueryCacheKey, std::vector<EntityId>, QueryCacheKeyHash> queryCache;
-    std::unordered_set<std::pair<EntityId, EntityId>, EntityIdPairHash> connectionLookup;
+    std::unordered_map<std::pair<EntityId, std::type_index>, uint8_t*, PairHash> componentDataCache;
+    std::unordered_set<std::pair<EntityId, EntityId>, PairHash> connectionLookup;
     std::unordered_map<EntityId, std::unordered_set<EntityId>> connectionsMap;
 
     void addComponentDirectly(EntityId entityId, std::type_index typeIndex, void* componentPtr, size_t componentSize) {
@@ -124,6 +126,10 @@ private:
         }
     }
 
+    static std::pair<EntityId, std::type_index> makeCacheKey(EntityId id, std::type_index type) {
+        return {id, type};
+    }
+
 public:
     World() = default;
 
@@ -132,11 +138,6 @@ public:
     }
 
     EntityId CreateEntity() {
-        if (!freeIds.empty()) {
-            EntityId id = freeIds.back();
-            freeIds.pop_back();
-            return id;
-        }
         return nextId++;
     }
 
@@ -155,13 +156,6 @@ public:
             void* newComponentPtr = copyConstructors[typeIndex](srcComponentPtr);
             addComponentDirectly(newId, typeIndex, newComponentPtr, componentSize);
         }
-
-        // Call setup for the scriopt
-        // for (auto& [typeIndex, componentIndex] : idToComponentIndex[sourceId]) {
-        //     if(typeIndex == std::type_index(typeid(ScriptComponent))) {
-        //         GetComponent<ScriptComponent>(newId).OnSetup(newId);
-        //     }
-        // }
 
         // Copy the connection
         auto connectionFindResult = connectionsMap.find(sourceId);
@@ -184,9 +178,14 @@ public:
             destructors[type](storage.data() + index);
             storage.erase(storage.begin() + offset, storage.begin() + offset + size);
             typeToEntities[type].erase(id);
+            
+            // Remove the component from component data cache.
+            auto cacheKey = makeCacheKey(id, type);
+            if(auto it = componentDataCache.find(cacheKey); it != componentDataCache.end()) {
+                componentDataCache.erase(it);
+            }
         }
         idToComponentIndex.erase(id);
-        freeIds.push_back(id);
         queryCache.clear(); // Invalidate the cash
         removeAllConnection(id);
     }
@@ -199,10 +198,6 @@ public:
         if (indexMap.find(typeIndex) != indexMap.end()) {
             size_t index = indexMap[typeIndex];
             data = componentStorage[typeIndex].data() + index * sizeof(T);
-            // if(typeIndex == std::type_index(typeid(ScriptComponent))) {
-            //     reinterpret_cast<ScriptComponent*>(data)->OnDestroyed(id);
-            //     // GetComponent<ScriptComponent>(id).OnDestroyed(id);
-            // }
             destroyComponent<T>(data);
             new (componentStorage[typeIndex].data() + index * sizeof(T)) T(std::forward<T>(component));
         } else {
@@ -221,11 +216,6 @@ public:
             }
             queryCache.clear(); // Invalidate the cashe
         }
-        // Call setup for the script
-        // if(typeIndex == std::type_index(typeid(ScriptComponent))) {
-        //     reinterpret_cast<ScriptComponent*>(data)->OnSetup(id);
-        //     // GetComponent<ScriptComponent>(id).OnSetup(id);
-        // }
         return *reinterpret_cast<T*>(data);
     }
 
@@ -233,9 +223,6 @@ public:
     void RemoveComponent(EntityId id) {
         auto typeIndex = std::type_index(typeid(T));
         if (idToComponentIndex[id].find(typeIndex) != idToComponentIndex[id].end()) {
-            // if(typeIndex == std::type_index(typeid(ScriptComponent))) {
-            //     GetComponent<ScriptComponent>(id).OnDestroyed(id);
-            // }
             size_t index = idToComponentIndex[id][typeIndex];
             auto& storage = componentStorage[typeIndex];
             destroyComponent<T>(storage.data() + index * sizeof(T));
@@ -243,14 +230,31 @@ public:
             storage.erase(storage.begin() + index * sizeof(T), storage.begin() + (index+1) * sizeof(T));
             typeToEntities[typeIndex].erase(id);
             queryCache.clear(); // Invalidate the cashe
+
+            // Remove the component from component data cache.
+            auto cacheKey = makeCacheKey(id, typeIndex);
+            if(auto it = componentDataCache.find(cacheKey); it != componentDataCache.end()) {
+                componentDataCache.erase(it);
+            }
         }
     }
 
     template<typename T>
     T& GetComponent(EntityId id) {
         auto typeIndex = std::type_index(typeid(T));
+        auto cacheKey = makeCacheKey(id, typeIndex);
+
+        // Check if the component is in the cache
+        if(auto it = componentDataCache.find(cacheKey); it != componentDataCache.end()) {
+            return *reinterpret_cast<T*>(it->second);
+        }
+
+        // Cache miss, add the data to the componets cache
         size_t index = idToComponentIndex[id][typeIndex];
-        return *reinterpret_cast<T*>(componentStorage[typeIndex].data() + index * sizeof(T));
+        uint8_t* data = componentStorage[typeIndex].data() + index * sizeof(T);
+        componentDataCache[cacheKey] = data;
+
+        return *reinterpret_cast<T*>(data);
     }
 
     template<typename T>
