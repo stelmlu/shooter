@@ -6,7 +6,6 @@
 #include <typeindex>
 #include <memory>
 #include <algorithm>
-#include "Component/ScriptComponent.hpp"
 
 using EntityId = uint32_t;
 
@@ -158,11 +157,11 @@ public:
         }
 
         // Call setup for the scriopt
-        for (auto& [typeIndex, componentIndex] : idToComponentIndex[sourceId]) {
-            if(typeIndex == std::type_index(typeid(ScriptComponent))) {
-                GetComponent<ScriptComponent>(newId).OnSetup(newId);
-            }
-        }
+        // for (auto& [typeIndex, componentIndex] : idToComponentIndex[sourceId]) {
+        //     if(typeIndex == std::type_index(typeid(ScriptComponent))) {
+        //         GetComponent<ScriptComponent>(newId).OnSetup(newId);
+        //     }
+        // }
 
         // Copy the connection
         auto connectionFindResult = connectionsMap.find(sourceId);
@@ -200,10 +199,10 @@ public:
         if (indexMap.find(typeIndex) != indexMap.end()) {
             size_t index = indexMap[typeIndex];
             data = componentStorage[typeIndex].data() + index * sizeof(T);
-            if(typeIndex == std::type_index(typeid(ScriptComponent))) {
-                reinterpret_cast<ScriptComponent*>(data)->OnDestroyed(id);
-                // GetComponent<ScriptComponent>(id).OnDestroyed(id);
-            }
+            // if(typeIndex == std::type_index(typeid(ScriptComponent))) {
+            //     reinterpret_cast<ScriptComponent*>(data)->OnDestroyed(id);
+            //     // GetComponent<ScriptComponent>(id).OnDestroyed(id);
+            // }
             destroyComponent<T>(data);
             new (componentStorage[typeIndex].data() + index * sizeof(T)) T(std::forward<T>(component));
         } else {
@@ -223,10 +222,10 @@ public:
             queryCache.clear(); // Invalidate the cashe
         }
         // Call setup for the script
-        if(typeIndex == std::type_index(typeid(ScriptComponent))) {
-            reinterpret_cast<ScriptComponent*>(data)->OnSetup(id);
-            // GetComponent<ScriptComponent>(id).OnSetup(id);
-        }
+        // if(typeIndex == std::type_index(typeid(ScriptComponent))) {
+        //     reinterpret_cast<ScriptComponent*>(data)->OnSetup(id);
+        //     // GetComponent<ScriptComponent>(id).OnSetup(id);
+        // }
         return *reinterpret_cast<T*>(data);
     }
 
@@ -234,9 +233,9 @@ public:
     void RemoveComponent(EntityId id) {
         auto typeIndex = std::type_index(typeid(T));
         if (idToComponentIndex[id].find(typeIndex) != idToComponentIndex[id].end()) {
-            if(typeIndex == std::type_index(typeid(ScriptComponent))) {
-                GetComponent<ScriptComponent>(id).OnDestroyed(id);
-            }
+            // if(typeIndex == std::type_index(typeid(ScriptComponent))) {
+            //     GetComponent<ScriptComponent>(id).OnDestroyed(id);
+            // }
             size_t index = idToComponentIndex[id][typeIndex];
             auto& storage = componentStorage[typeIndex];
             destroyComponent<T>(storage.data() + index * sizeof(T));

@@ -10,45 +10,33 @@
 #include "Component/PositionComponent.hpp"
 #include "Component/TextureComponent.hpp"
 #include "Component/ScriptComponent.hpp"
+#include "Component/PriorityQueueComponent.hpp"
 
 // Screen dimension constants
 constexpr int SCREEN_WIDTH = 800;
 constexpr int SCREEN_HEIGHT = 600;
 
-struct BaseScript {
-
-    void OnSetup(EntityId self) {
-        std::cout << "Base OnSetup: " << self << "\n";
-    }
-
-    void OnEvent(EntityId self, const SDL_Event& event) {}
-
-    void OnUpdate(EntityId self, float dt) {}
-
-    void OnCollision(EntityId self, EntityId other) {}
-
-    void OnDestroyed(EntityId self) {
-        std::cout << "OnDestroy: " << self << "\n";
-    }
-};
-
-struct MyScript: BaseScript {
-    void OnSetup(EntityId self) {
-        std::cout << "My OnSetup: " << self << "\n";
-    }
-};
-
-World SetupGamePlay(const SDLRenderer& renderer) {
+World SetupPlayground(const SDLRenderer& renderer) {
     World world;
 
     const auto player = world.CreateEntity();
     world.EmplaceComponent(player, PositionComponent{ 100.0f, 100.0f });
     world.EmplaceComponent(player, TextureComponent(renderer, "gfx/player.png"));
-    world.EmplaceComponent(player, ScriptComponent( MyScript{} ));
-
-    const auto foo = world.CloneEntity(player);
 
     return world;
+}
+
+void InvokeCallOnUpdate(World& world, float dt) {
+    // Call if th player has a ScriptComponent
+    for(const auto id : world.Query<ScriptComponent>()) {
+        world.GetComponent<ScriptComponent>(id).OnUpdate(id, dt);
+    }
+    // Call if the player has a PriorityQueueComponent
+    for(const auto id : world.Query<PriorityQueueComponent<ScriptComponent>>()) {
+        for(auto& scriptComponent : world.GetComponent<PriorityQueueComponent<ScriptComponent>>(id)) {
+            scriptComponent.second.OnUpdate(id, dt);
+        }
+    }
 }
 
 void InvokeDrawTexture(World& world) {
@@ -68,7 +56,7 @@ int main() {
         bool quit = false;
         SDL_Event event;
 
-        World world = SetupGamePlay(renderer);
+        World world = SetupPlayground(renderer);
 
         while (!quit) {
             while (SDL_PollEvent(&event) != 0) {
@@ -76,6 +64,8 @@ int main() {
                     quit = true;
                 }
             }
+
+            InvokeCallOnUpdate(world, 1.0f / 60.0f);
 
             SDL_RenderClear(renderer.get());
             InvokeDrawTexture(world);

@@ -2,18 +2,23 @@
 #include <SDL.h>
 #include <cstdint>
 #include <memory>
+#include "../Loom.hpp"
 
 using EntityId = uint32_t;
+
+struct Script {
+    void OnEvent(EntityId self, const SDL_Event& event) {}
+    void OnUpdate(EntityId self, float dt) {}
+    void OnCollision(EntityId self, EntityId other) {}
+};
 
 class ScriptComponent {
 public:
     struct IScript {
         virtual ~IScript() = default;
-        virtual void OnSetup(EntityId self) = 0;
         virtual void OnEvent(EntityId self, const SDL_Event& event) = 0;
         virtual void OnUpdate(EntityId self, float dt) = 0;
         virtual void OnCollision(EntityId self, EntityId other) = 0;
-        virtual void OnDestroyed(EntityId self) = 0;
         virtual std::unique_ptr<IScript> clone() const = 0;
     };
 
@@ -27,10 +32,6 @@ private:
     public:
         ScriptModel(T script) : scriptImpl(std::move(script)) {}
 
-        void OnSetup(EntityId self) override {
-            scriptImpl.OnSetup(self);
-        }
-
         void OnEvent(EntityId self, const SDL_Event& event) override {
             scriptImpl.OnEvent(self, event);
         }
@@ -41,10 +42,6 @@ private:
 
         void OnCollision(EntityId self, uint32_t other) override {
             scriptImpl.OnCollision(self, other);
-        }
-
-        void OnDestroyed(EntityId self) override {
-            scriptImpl.OnDestroyed(self);
         }
 
         std::unique_ptr<IScript> clone() const override {
@@ -65,10 +62,6 @@ public:
         return *this;
     }
 
-    void OnSetup(EntityId self) {
-        if (script) script->OnSetup(self);
-    }
-
     void OnEvent(EntityId self, const SDL_Event& event) {
         if (script) script->OnEvent(self, event);
     }
@@ -79,10 +72,6 @@ public:
 
     void OnCollision(uint32_t self, uint32_t other) {
         if (script) script->OnCollision(self, other);
-    }
-
-    void OnDestroyed(uint32_t self) {
-        if (script) script->OnDestroyed(self);
     }
 
     ~ScriptComponent() {
