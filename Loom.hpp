@@ -245,9 +245,9 @@ public:
         auto cacheKey = makeCacheKey(id, typeIndex);
 
         // Check if the component is in the cache
-        if(auto it = componentDataCache.find(cacheKey); it != componentDataCache.end()) {
-            return *reinterpret_cast<T*>(it->second);
-        }
+        // if(auto it = componentDataCache.find(cacheKey); it != componentDataCache.end()) {
+        //     return *reinterpret_cast<T*>(it->second);
+        // }
 
         // Cache miss, add the data to the componets cache
         size_t index = idToComponentIndex[id][typeIndex];

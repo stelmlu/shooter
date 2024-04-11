@@ -9,10 +9,7 @@
 class PlayerMoveInputScript: public Script {
     World& world;
 public:
-    PlayerMoveInputScript(World& world, EntityId self): world(world) {
-        world.EmplaceComponent<KeyStateComponent>(self, {});
-        world.EmplaceComponent<VelocityComponent>(self, { 0.0f, 0.0f });
-    }
+    PlayerMoveInputScript(World& world): world(world) {}
 
     void OnEvent(EntityId self, const SDL_Event& event) {
         switch(event.type) {

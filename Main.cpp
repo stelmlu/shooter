@@ -15,16 +15,35 @@
 #include "Component/VelocityComponent.hpp"
 #include "Component/KeyStateComponent.hpp"
 #include "Component/PriorityQueueComponent.hpp"
+#include "Component/PrototypeTag.hpp"
 #include "Script/PlayerMoveInputScript.hpp"
+#include "Script/PreventLeavningScreen.hpp"
+#include "Script/DestroyWhenLeavingScreenScript.hpp"
+#include "Script/PlayerShootInputScript.hpp"
 
 World SetupPlayground(const SDLRenderer& renderer) {
     World world;
 
+    const auto playerBulletProtype = world.CreateEntity();
+    world.EmplaceComponent(playerBulletProtype, PrototypeTag{});
+    world.EmplaceComponent(playerBulletProtype, PositionComponent{ 100.0f, 100.0f });
+    world.EmplaceComponent(playerBulletProtype, VelocityComponent{ 700.0f, 0.0f });
+    world.EmplaceComponent(playerBulletProtype, TextureComponent{ renderer, "gfx/playerBullet.png"});
+    world.EmplaceComponent(playerBulletProtype, ScriptComponent{ DestroyWhenLeavningScript{ world }});
+
     const auto player = world.CreateEntity();
+    world.EmplaceComponent(player, KeyStateComponent{});
     world.EmplaceComponent(player, PositionComponent{ 100.0f, 100.0f });
+    world.EmplaceComponent(player, VelocityComponent{ 0.0f, 0.0f });
     world.EmplaceComponent(player, TextureComponent{ renderer, "gfx/player.png" });
     world.EmplaceComponent(player, PriorityQueueComponent<ScriptComponent>())
-        .Add(ScriptComponent{ PlayerMoveInputScript{ world, player } }, 10);
+        .Add(ScriptComponent{ PlayerMoveInputScript{ world } }, 10)
+        .Add(ScriptComponent{ PreventLeavingScreen{ world }}, 1)
+        .Add(ScriptComponent{ PlayerShootInputScript{ world, playerBulletProtype }}, 10);
+
+    const EntityId playerBullet = world.CloneEntity(playerBulletProtype);
+    world.RemoveComponent<PrototypeTag>(playerBullet);
+    world.EmplaceComponent(playerBullet, PositionComponent{ 100.0f, 100.0f });
 
     return world;
 }
@@ -32,11 +51,13 @@ World SetupPlayground(const SDLRenderer& renderer) {
 void InvokeCallOnUpdate(World& world) {
     // Call if th player has a ScriptComponent
     for(const auto id : world.Query<ScriptComponent>()) {
+        if(world.HasComponent<PrototypeTag>(id)) continue;
         world.GetComponent<ScriptComponent>(id).OnUpdate(id, SECOND_PER_UPDATE);
     }
 
     // Call if the player has a PriorityQueueComponent
     for(const auto id : world.Query<PriorityQueueComponent<ScriptComponent>>()) {
+        if(world.HasComponent<PrototypeTag>(id)) continue;
         for(auto& scriptComponent : world.GetComponent<PriorityQueueComponent<ScriptComponent>>(id)) {
             scriptComponent.second.OnUpdate(id, SECOND_PER_UPDATE);
         }
@@ -46,10 +67,12 @@ void InvokeCallOnUpdate(World& world) {
 void InvokeCallOnEvent(World& world, const SDL_Event& event) {
     // Call if th player has a ScriptComponent
     for(const auto id : world.Query<ScriptComponent>()) {
+        if(world.HasComponent<PrototypeTag>(id)) continue;
         world.GetComponent<ScriptComponent>(id).OnEvent(id, event);
     }
     // Call if the player has a PriorityQueueComponent
     for(const auto id : world.Query<PriorityQueueComponent<ScriptComponent>>()) {
+        if(world.HasComponent<PrototypeTag>(id)) continue;
         for(auto& scriptComponent : world.GetComponent<PriorityQueueComponent<ScriptComponent>>(id)) {
             scriptComponent.second.OnEvent(id, event);
         }
@@ -58,6 +81,8 @@ void InvokeCallOnEvent(World& world, const SDL_Event& event) {
 
 void InvokeMovement(World& world) {
     for(const auto id : world.Query<PositionComponent, VelocityComponent>()) {
+        if(world.HasComponent<PrototypeTag>(id)) continue;
+
         auto& position = world.GetComponent<PositionComponent>(id);
         const auto& velocity = world.GetComponent<VelocityComponent>(id);
         position.x += velocity.dx * SECOND_PER_UPDATE;
@@ -67,6 +92,8 @@ void InvokeMovement(World& world) {
 
 void InvokeDrawTexture(World& world, float interpolation) {
     for(const auto id : world.Query<PositionComponent, TextureComponent>()) {
+        if(world.HasComponent<PrototypeTag>(id)) continue;
+
         if(world.HasComponent<VelocityComponent>(id)) {
             auto& position = world.GetComponent<PositionComponent>(id);
             const auto& velocity = world.GetComponent<VelocityComponent>(id);
