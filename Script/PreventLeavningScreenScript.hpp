@@ -1,16 +1,14 @@
 #pragma once
-
 #include <entity/registry.hpp>
 #include "../Settings.hpp"
 #include "../Component/ScriptComponent.hpp"
 #include "../Component/VelocityComponent.hpp"
 #include "../Component/TextureComponent.hpp"
 
-class DestroyWhenLeavningScreenScript: public Script {
+class PreventLeavingScreenScript: public Script {
     entt::registry& reg;
-    
 public:
-    DestroyWhenLeavningScreenScript(entt::registry& reg): reg(reg) {}
+    PreventLeavingScreenScript(entt::registry& reg) : reg(reg) {}
 
     void OnUpdate(entt::entity self, float dt) {
         const auto& position = reg.get<PositionComponent>(self);
@@ -24,12 +22,12 @@ public:
         float nextX = x + velocity.dx * dt;
         float nextY = y + velocity.dy * dt;
 
-        if ((nextX + w) < 0 || nextX > SCREEN_WIDTH) {
-            reg.destroy(self);
+        if (nextX < 0 || (nextX + w) > SCREEN_WIDTH) {
+            velocity.dx = 0;
         }
 
-        if ((nextY + w) < 0 || nextY > SCREEN_HEIGHT) {
-            reg.destroy(self);
+        if (nextY < 0 || (nextY + h) > SCREEN_HEIGHT) {
+            velocity.dy = 0;
         }
     }
 };

@@ -1,55 +1,54 @@
 #pragma once
-
-#include "../Loom.hpp"
+#include <entity/registry.hpp>
 #include "../Settings.hpp"
 #include "../Component/ScriptComponent.hpp"
 #include "../Component/VelocityComponent.hpp"
 #include "../Component/KeyStateComponent.hpp"
 
 class PlayerMoveInputScript: public Script {
-    World& world;
+    entt::registry& reg;
 public:
-    PlayerMoveInputScript(World& world): world(world) {}
+    PlayerMoveInputScript(entt::registry& reg): reg(reg) {}
 
-    void OnEvent(EntityId self, const SDL_Event& event) {
+    void OnEvent(entt::entity self, const SDL_Event& event) {
         switch(event.type) {
         case SDL_KEYDOWN:
             switch(event.key.keysym.sym) {
             case SDLK_LEFT:
-                world.GetComponent<KeyStateComponent>(self).leftKeyDown = true;
+                reg.get<KeyStateComponent>(self).leftKeyDown = true;
                 break;
             case SDLK_RIGHT:
-                world.GetComponent<KeyStateComponent>(self).rightKeyDown = true;
+                reg.get<KeyStateComponent>(self).rightKeyDown = true;
                 break;
             case SDLK_UP:
-                world.GetComponent<KeyStateComponent>(self).upKeyDown = true;
+                reg.get<KeyStateComponent>(self).upKeyDown = true;
                 break;
             case SDLK_DOWN:
-                world.GetComponent<KeyStateComponent>(self).downKeyDown = true;
+                reg.get<KeyStateComponent>(self).downKeyDown = true;
                 break;
             }
             break;
         case SDL_KEYUP:
             switch(event.key.keysym.sym) {
             case SDLK_LEFT:
-                world.GetComponent<KeyStateComponent>(self).leftKeyDown = false;
+                reg.get<KeyStateComponent>(self).leftKeyDown = false;
                 break;
             case SDLK_RIGHT:
-                world.GetComponent<KeyStateComponent>(self).rightKeyDown = false;
+                reg.get<KeyStateComponent>(self).rightKeyDown = false;
                 break;
             case SDLK_UP:
-                world.GetComponent<KeyStateComponent>(self).upKeyDown = false;
+                reg.get<KeyStateComponent>(self).upKeyDown = false;
                 break;
             case SDLK_DOWN:
-                world.GetComponent<KeyStateComponent>(self).downKeyDown = false;
+                reg.get<KeyStateComponent>(self).downKeyDown = false;
                 break;
             }
         }
     }
 
-    void OnUpdate(EntityId self, float dt) {
-        const auto& keyState = world.GetComponent<KeyStateComponent>(self);
-        auto& velocity = world.GetComponent<VelocityComponent>(self);
+    void OnUpdate(entt::entity self, float dt) {
+        const auto& keyState = reg.get<KeyStateComponent>(self);
+        auto& velocity = reg.get<VelocityComponent>(self);
 
         // Apply acceleration if key is pressed.
         if(keyState.leftKeyDown) {

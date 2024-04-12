@@ -6,7 +6,7 @@
 class SDLRenderer {
 public:
     SDLRenderer(SDL_Window* window) {
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
         if (!renderer) {
             throw std::runtime_error("Renderer could not be created! SDL Error: " + std::string(SDL_GetError()));
         }

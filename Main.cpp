@@ -3,10 +3,93 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <entity/registry.hpp>
 #include "Settings.hpp"
 #include "SDLSystem.hpp"
 #include "SDLWindow.hpp"
 #include "SDLRenderer.hpp"
+#include "Component/PositionComponent.hpp"
+#include "Component/ScriptComponent.hpp"
+#include "Component/VelocityComponent.hpp"
+#include "Component/KeyStateComponent.hpp"
+#include "Component/TextureComponent.hpp"
+#include "Script/PlayerMoveInputScript.hpp"
+#include "Script/PlayerProxyScript.hpp"
+#include "Script/DestroyWhenLeavingScreenScript.hpp"
+
+void OnScriptComponentConstructed(entt::registry& reg, entt::entity self) {
+    reg.get<ScriptComponent>(self).OnConstructed(self);
+}
+
+void OnScriptComponentDestroyed(entt::registry& reg, entt::entity self) {
+    reg.get<ScriptComponent>(self).OnDestroyed(self);
+}
+
+entt::registry CreateRegistry() {
+    entt::registry reg;
+    reg.on_construct<ScriptComponent>().connect<&OnScriptComponentConstructed>();
+    reg.on_destroy<ScriptComponent>().connect<&OnScriptComponentDestroyed>();
+    return reg;
+}
+
+entt::entity CreatePlayerBullet(entt::registry& reg, const SDLRenderer& renderer) {
+    const entt::entity id = reg.create();
+    reg.emplace<PositionComponent>(id, 0.0f, 100.0f);
+    reg.emplace<VelocityComponent>(id, PLAYER_BULLET_SPEED, 0.0f);
+    reg.emplace<KeyStateComponent>(id);
+    reg.emplace<TextureComponent>(id, renderer, "gfx/playerBullet.png");
+    reg.emplace<ScriptComponent>(id, DestroyWhenLeavningScreenScript{ reg });
+    return id;
+}
+
+entt::entity CreatePlayer(entt::registry& reg, const SDLRenderer& renderer) {
+    const entt::entity id = reg.create();
+    reg.emplace<PositionComponent>(id, 100.0f, 100.0f);
+    reg.emplace<VelocityComponent>(id, 0.0f, 0.0f);
+    reg.emplace<KeyStateComponent>(id);
+    reg.emplace<TextureComponent>(id, renderer, "gfx/player.png");
+    reg.emplace<ScriptComponent>(id, PlayerProxyScript{ reg, renderer, CreatePlayerBullet });
+    return id;
+}
+
+entt::registry CreatePlayground(const SDLRenderer& renderer) {
+    auto reg = CreateRegistry();
+    const entt::entity player = CreatePlayer(reg, renderer);
+    return reg;
+}
+
+void InvokeCallOnEvent(entt::registry& reg, const SDL_Event& event) {
+    auto view = reg.view<ScriptComponent>();
+    view.each([event](entt::entity self, auto& script) {
+        script.OnEvent(self, event);
+    });
+}
+
+void InvokeCallOnUpdate(entt::registry& reg) {
+    auto view = reg.view<ScriptComponent>();
+    view.each([](entt::entity self, auto& script) {
+        script.OnUpdate(self, SECOND_PER_UPDATE);
+    });
+}
+
+void InvokeMovement(entt::registry& reg) {
+    auto view = reg.view<PositionComponent, const VelocityComponent>();
+    view.each([](auto& pos, const auto& vel){
+        pos.x += vel.dx * SECOND_PER_UPDATE;
+        pos.y += vel.dy * SECOND_PER_UPDATE;
+    });
+}
+
+void InvokeDrawTexture(entt::registry& reg, const SDLRenderer& renderer, float interpolation) {
+    auto view = reg.view<const PositionComponent, const TextureComponent>();
+    view.each([&renderer](const auto& pos, const auto& tex) {
+        SDL_Rect dst = {
+            static_cast<int>(pos.x + 0.5f), static_cast<int>(pos.y + 0.5f),
+            tex.width, tex.height
+        };
+        SDL_RenderCopy(renderer.get(), tex.texture, NULL, &dst);
+    });
+}
 
 int main() {
     try {
@@ -14,10 +97,10 @@ int main() {
         SDLWindow window("Shooter", SCREEN_WIDTH, SCREEN_HEIGHT);
         SDLRenderer renderer(window.get());
 
+        entt::registry reg = CreatePlayground(renderer);
+
         bool quit = false;
         SDL_Event event;
-
-
         float ms_per_update = SECOND_PER_UPDATE * 1000.0f;
         float previous = static_cast<float>(SDL_GetTicks64());
         float lag = 0.0f;
@@ -31,17 +114,17 @@ int main() {
                 if (event.type == SDL_QUIT) {
                     quit = true;
                 }
-                // InvokeCallOnEvent(world, event);
+                InvokeCallOnEvent(reg, event);
             }
 
             while(lag >= ms_per_update) {
-                // InvokeCallOnUpdate(world);
-                // InvokeMovement(world);
+                InvokeCallOnUpdate(reg);
+                InvokeMovement(reg);
                 lag -= ms_per_update;
             }
 
             SDL_RenderClear(renderer.get());
-            // InvokeDrawTexture(world, lag / ms_per_update);
+            InvokeDrawTexture(reg, renderer, lag / ms_per_update);
             SDL_RenderPresent(renderer.get());
 
             SDL_Delay(16);
@@ -55,4 +138,4 @@ int main() {
 }
 
 // Static member definition
-// std::unordered_map<std::string, std::pair<SDL_Texture*, int>> TextureComponent::textures;
+std::unordered_map<std::string, SDL_Texture*> TextureComponent::textures;
