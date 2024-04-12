@@ -9,8 +9,7 @@ struct PreventLeavingScreenScript: public Script {
     void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
         const auto& position = reg.get<PositionComponent>(self);
         auto& velocity  = reg.get<VelocityComponent>(self);
-        const auto& textureEntity = reg.get<TextureEntityComponent>(self);
-        const auto& texture = reg.get<TextureComponent>(textureEntity.entity);
+        const auto& texture = reg.get<TextureComponent>(self);
 
         float x = position.x;
         float y = position.y;

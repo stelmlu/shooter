@@ -14,7 +14,6 @@
 #include "Component/KeyStateComponent.hpp"
 #include "Component/PathComponent.hpp"
 #include "Component/TextureComponent.hpp"
-#include "Component/TextureEntityComponent.hpp"
 #include "Script/PlayerMoveInputScript.hpp"
 #include "Script/PlayerProxyScript.hpp"
 #include "Script/DestroyWhenLeavingScreenScript.hpp"
@@ -34,34 +33,29 @@ entt::registry CreateRegistry() {
     return reg;
 }
 
-entt::entity LoadTexture(entt::registry &reg, const SDLRenderer& renderer, const std::string& path) {
-    // Search for the entity with a PathComponent and TextureComponent and return if found.
-    auto view = reg.view<PathComponent, TextureComponent>();
-    for(auto [self, pathcomp, texture]: view.each()) {
-        if(pathcomp.path == path) return self;
-    }
+static std::unordered_map<std::string, TextureComponent> textureComponentMap;
 
-    // Not found, then create a new and load the texture and add Path and TextureComponent.
-    const entt::entity self = reg.create();
-    SDL_Texture* texptr = IMG_LoadTexture(renderer.get(), path.c_str());
-    if (!texptr) {
-        throw std::runtime_error("Unable to load image " + path + "! SDL_image Error: " + std::string(IMG_GetError()));
+const TextureComponent& LoadTexture(const SDLRenderer& renderer, const std::string& path) {
+    // Search for the entity with a PathComponent and TextureComponent and return if found.
+    auto& textureComponent = textureComponentMap[path];
+    if(textureComponent.texture == nullptr) {
+        // Not found, then create a new and load the texture and add Path and TextureComponent.
+        textureComponent.texture = IMG_LoadTexture(renderer.get(), path.c_str());
+        if (!textureComponent.texture) {
+            throw std::runtime_error("Unable to load image " + path + "! SDL_image Error: " + std::string(IMG_GetError()));
+        }
+        SDL_QueryTexture(textureComponent.texture, 0, 0, &textureComponent.width, &textureComponent.height);
+        std::cout << "Load texture: " << path << "\n";
     }
-    std::cout << "Load texture: " << path << "\n";
-    int width, height;
-    SDL_QueryTexture(texptr, 0, 0, &width, &height);
-    reg.emplace<TextureComponent>(self, texptr, width, height);
-    reg.emplace<PathComponent>(self, path);
-    return self;
+    return textureComponent;
 }
 
-entt::entity FindTexture(entt::registry &reg, const std::string& path) {
-    // Search for the entity with a PathComponent and TextureComponent and return if found.
-    auto view = reg.view<PathComponent, TextureComponent>();
-    for(auto [self, pathcomp, texture]: view.each()) {
-        if(pathcomp.path == path) return self;
+const TextureComponent& FindTexture(entt::registry &reg, const std::string& path) {
+    const auto& textureComponent = textureComponentMap[path];
+    if(textureComponent.texture == nullptr) {
+        throw std::runtime_error("Unable to find texture for " + path + "!");
     }
-    throw std::runtime_error("Unable to find texture for " + path + "!");
+    return textureComponent;
 }
 
 entt::entity CreatePlayerBullet(entt::registry& reg) {
@@ -69,7 +63,7 @@ entt::entity CreatePlayerBullet(entt::registry& reg) {
     reg.emplace<PositionComponent>(id, 0.0f, 100.0f);
     reg.emplace<VelocityComponent>(id, PLAYER_BULLET_SPEED, 0.0f);
     reg.emplace<KeyStateComponent>(id);
-    reg.emplace<TextureEntityComponent>(id, FindTexture(reg, "gfx/playerBullet.png"));
+    reg.emplace<TextureComponent>(id, FindTexture(reg, "gfx/playerBullet.png"));
     reg.emplace<ScriptComponent>(id, DestroyWhenLeavningScreenScript{});
     return id;
 }
@@ -79,15 +73,16 @@ entt::entity CreatePlayer(entt::registry& reg) {
     reg.emplace<PositionComponent>(id, 100.0f, 100.0f);
     reg.emplace<VelocityComponent>(id, 0.0f, 0.0f);
     reg.emplace<KeyStateComponent>(id);
-    reg.emplace<TextureEntityComponent>(id, FindTexture(reg, "gfx/player.png"));
+    reg.emplace<TextureComponent>(id, FindTexture(reg, "gfx/player.png"));
     reg.emplace<ScriptComponent>(id, PlayerProxyScript{ CreatePlayerBullet });
     return id;
 }
 
 entt::registry CreatePlayground(const SDLRenderer& renderer) {
+    LoadTexture(renderer, "gfx/player.png");
+    LoadTexture(renderer, "gfx/playerBullet.png");
+
     auto reg = CreateRegistry();
-    LoadTexture(reg, renderer, "gfx/player.png");
-    LoadTexture(reg, renderer, "gfx/playerBullet.png");
     const entt::entity player = CreatePlayer(reg);
     return reg;
 }
@@ -115,9 +110,8 @@ void InvokeMovement(entt::registry& reg) {
 }
 
 void InvokeDrawTexture(entt::registry& reg, const SDLRenderer& renderer, float interpolation) {
-    auto view = reg.view<const PositionComponent, const TextureEntityComponent>();
-    view.each([&reg,&renderer](const auto& pos, const auto& texentity) {
-        auto& tex = reg.get<TextureComponent>(texentity.entity);
+    auto view = reg.view<const PositionComponent, const TextureComponent>();
+    view.each([&reg,&renderer](const auto& pos, const auto& tex) {
         SDL_Rect dst = {
             static_cast<int>(pos.x + 0.5f), static_cast<int>(pos.y + 0.5f),
             tex.width, tex.height
