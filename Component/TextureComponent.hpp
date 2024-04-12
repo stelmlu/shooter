@@ -11,6 +11,7 @@
 
 struct TextureComponent {
     static std::unordered_map<std::string, SDL_Texture*> textures;
+    
 public:
     SDL_Texture* texture = nullptr;
     int width, height;

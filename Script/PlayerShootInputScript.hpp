@@ -9,22 +9,20 @@
 #include "../Component/FireCooldownComponent.hpp"
 
 class PlayerShootInputScript: public Script {
-    entt::registry& reg;
     const SDLRenderer& renderer;
     std::function<entt::entity(entt::registry&, const SDLRenderer& renderer)> createPlayerBullet;
 
 public:
     template<typename Func>
-    PlayerShootInputScript(entt::registry& reg, const SDLRenderer& renderer, Func& createPlayerBullet)
-        : reg(reg)
-        , renderer(renderer)
+    PlayerShootInputScript(const SDLRenderer& renderer, Func& createPlayerBullet)
+        : renderer(renderer)
         , createPlayerBullet(createPlayerBullet) {}
     
-    void OnConstructed(entt::entity self) {
+    void OnConstructed(entt:: registry& reg, entt::entity self) {
         reg.emplace<FireCooldownComponent>(self, PLAYER_FIRE_COOLDOWN_TIME);
     }
 
-    void OnEvent(entt::entity self, const SDL_Event& event) {
+    void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) {
         if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE) {
             reg.get<KeyStateComponent>(self).fireKeyDown = true;
         }
@@ -33,7 +31,7 @@ public:
         }
     }
 
-    void OnUpdate(entt::entity self, float dt) {
+    void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
         auto& fireCooldown = reg.get<FireCooldownComponent>(self);
         auto fireDown = reg.get<KeyStateComponent>(self).fireKeyDown;
         fireCooldown.countdown -= dt;
@@ -47,7 +45,7 @@ public:
         }
     }
 
-    void OnDestroyed(entt::entity self) {
+    void OnDestroyed(entt:: registry& reg, entt::entity self) {
         reg.remove<FireCooldownComponent>(self);
     }
 };

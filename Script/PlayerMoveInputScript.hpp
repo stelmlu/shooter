@@ -5,12 +5,8 @@
 #include "../Component/VelocityComponent.hpp"
 #include "../Component/KeyStateComponent.hpp"
 
-class PlayerMoveInputScript: public Script {
-    entt::registry& reg;
-public:
-    PlayerMoveInputScript(entt::registry& reg): reg(reg) {}
-
-    void OnEvent(entt::entity self, const SDL_Event& event) {
+struct PlayerMoveInputScript: public Script {
+    void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) {
         switch(event.type) {
         case SDL_KEYDOWN:
             switch(event.key.keysym.sym) {
@@ -46,7 +42,7 @@ public:
         }
     }
 
-    void OnUpdate(entt::entity self, float dt) {
+    void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
         const auto& keyState = reg.get<KeyStateComponent>(self);
         auto& velocity = reg.get<VelocityComponent>(self);
 

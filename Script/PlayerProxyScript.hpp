@@ -7,34 +7,32 @@
 #include "PlayerShootInputScript.hpp"
 
 class PlayerProxyScript: public Script {
-    entt::registry& reg;
     PlayerMoveInputScript moveInputScript;
     PreventLeavingScreenScript preventLeavingScreenScript;
     PlayerShootInputScript playerShootInputScript;
 public:
     template<typename Func>
-    PlayerProxyScript(entt::registry& reg, const SDLRenderer& renderer, Func& createPlayerBullet)
-        : reg(reg)
-        , moveInputScript(reg)
-        , preventLeavingScreenScript(reg)
-        , playerShootInputScript(reg, renderer, createPlayerBullet) {}
+    PlayerProxyScript(const SDLRenderer& renderer, Func& createPlayerBullet)
+        : moveInputScript()
+        , preventLeavingScreenScript()
+        , playerShootInputScript(renderer, createPlayerBullet) {}
     
-    void OnConstructed(entt::entity self) {
-        playerShootInputScript.OnConstructed(self);
+    void OnConstructed(entt:: registry& reg, entt::entity self) {
+        playerShootInputScript.OnConstructed(reg, self);
     }
     
-    void OnEvent(entt::entity self, const SDL_Event& event) {
-        moveInputScript.OnEvent(self, event);
-        playerShootInputScript.OnEvent(self, event);
+    void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) {
+        moveInputScript.OnEvent(reg, self, event);
+        playerShootInputScript.OnEvent(reg, self, event);
     }
 
-    void OnUpdate(entt::entity self, float dt) {
-        moveInputScript.OnUpdate(self, dt);
-        preventLeavingScreenScript.OnUpdate(self, dt);
-        playerShootInputScript.OnUpdate(self, dt);
+    void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
+        moveInputScript.OnUpdate(reg, self, dt);
+        preventLeavingScreenScript.OnUpdate(reg, self, dt);
+        playerShootInputScript.OnUpdate(reg, self, dt);
     }
 
-    void OnDestructed(entt::entity self) {
-        playerShootInputScript.OnDestroyed(self);
+    void OnDestructed(entt:: registry& reg, entt::entity self) {
+        playerShootInputScript.OnDestroyed(reg, self);
     }
 };

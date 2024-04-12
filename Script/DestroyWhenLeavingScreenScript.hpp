@@ -6,13 +6,8 @@
 #include "../Component/VelocityComponent.hpp"
 #include "../Component/TextureComponent.hpp"
 
-class DestroyWhenLeavningScreenScript: public Script {
-    entt::registry& reg;
-    
-public:
-    DestroyWhenLeavningScreenScript(entt::registry& reg): reg(reg) {}
-
-    void OnUpdate(entt::entity self, float dt) {
+struct DestroyWhenLeavningScreenScript: public Script {
+    void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
         const auto& position = reg.get<PositionComponent>(self);
         auto& velocity  = reg.get<VelocityComponent>(self);
         const auto& texture = reg.get<TextureComponent>(self);

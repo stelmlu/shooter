@@ -18,11 +18,11 @@
 #include "Script/DestroyWhenLeavingScreenScript.hpp"
 
 void OnScriptComponentConstructed(entt::registry& reg, entt::entity self) {
-    reg.get<ScriptComponent>(self).OnConstructed(self);
+    reg.get<ScriptComponent>(self).OnConstructed(reg, self);
 }
 
 void OnScriptComponentDestroyed(entt::registry& reg, entt::entity self) {
-    reg.get<ScriptComponent>(self).OnDestroyed(self);
+    reg.get<ScriptComponent>(self).OnDestroyed(reg, self);
 }
 
 entt::registry CreateRegistry() {
@@ -38,7 +38,7 @@ entt::entity CreatePlayerBullet(entt::registry& reg, const SDLRenderer& renderer
     reg.emplace<VelocityComponent>(id, PLAYER_BULLET_SPEED, 0.0f);
     reg.emplace<KeyStateComponent>(id);
     reg.emplace<TextureComponent>(id, renderer, "gfx/playerBullet.png");
-    reg.emplace<ScriptComponent>(id, DestroyWhenLeavningScreenScript{ reg });
+    reg.emplace<ScriptComponent>(id, DestroyWhenLeavningScreenScript{});
     return id;
 }
 
@@ -48,7 +48,7 @@ entt::entity CreatePlayer(entt::registry& reg, const SDLRenderer& renderer) {
     reg.emplace<VelocityComponent>(id, 0.0f, 0.0f);
     reg.emplace<KeyStateComponent>(id);
     reg.emplace<TextureComponent>(id, renderer, "gfx/player.png");
-    reg.emplace<ScriptComponent>(id, PlayerProxyScript{ reg, renderer, CreatePlayerBullet });
+    reg.emplace<ScriptComponent>(id, PlayerProxyScript{ renderer, CreatePlayerBullet });
     return id;
 }
 
@@ -60,15 +60,15 @@ entt::registry CreatePlayground(const SDLRenderer& renderer) {
 
 void InvokeCallOnEvent(entt::registry& reg, const SDL_Event& event) {
     auto view = reg.view<ScriptComponent>();
-    view.each([event](entt::entity self, auto& script) {
-        script.OnEvent(self, event);
+    view.each([&reg, &event](entt::entity self, auto& script) {
+        script.OnEvent(reg, self, event);
     });
 }
 
 void InvokeCallOnUpdate(entt::registry& reg) {
     auto view = reg.view<ScriptComponent>();
-    view.each([](entt::entity self, auto& script) {
-        script.OnUpdate(self, SECOND_PER_UPDATE);
+    view.each([&reg](entt::entity self, auto& script) {
+        script.OnUpdate(reg, self, SECOND_PER_UPDATE);
     });
 }
 

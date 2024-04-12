@@ -5,12 +5,8 @@
 #include "../Component/VelocityComponent.hpp"
 #include "../Component/TextureComponent.hpp"
 
-class PreventLeavingScreenScript: public Script {
-    entt::registry& reg;
-public:
-    PreventLeavingScreenScript(entt::registry& reg) : reg(reg) {}
-
-    void OnUpdate(entt::entity self, float dt) {
+struct PreventLeavingScreenScript: public Script {
+    void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
         const auto& position = reg.get<PositionComponent>(self);
         auto& velocity  = reg.get<VelocityComponent>(self);
         const auto& texture = reg.get<TextureComponent>(self);
