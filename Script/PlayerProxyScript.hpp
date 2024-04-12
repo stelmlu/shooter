@@ -12,10 +12,10 @@ class PlayerProxyScript: public Script {
     PlayerShootInputScript playerShootInputScript;
 public:
     template<typename Func>
-    PlayerProxyScript(const SDLRenderer& renderer, Func& createPlayerBullet)
+    PlayerProxyScript(Func& createPlayerBullet)
         : moveInputScript()
         , preventLeavingScreenScript()
-        , playerShootInputScript(renderer, createPlayerBullet) {}
+        , playerShootInputScript(createPlayerBullet) {}
     
     void OnConstructed(entt:: registry& reg, entt::entity self) {
         playerShootInputScript.OnConstructed(reg, self);
