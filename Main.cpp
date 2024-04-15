@@ -4,6 +4,7 @@
 #include <memory>
 #include <stdexcept>
 #include <entity/registry.hpp>
+#include <random>
 #include "Settings.hpp"
 #include "SDLSystem.hpp"
 #include "SDLWindow.hpp"
@@ -58,6 +59,29 @@ const TextureComponent& FindTexture(entt::registry &reg, const std::string& path
     return textureComponent;
 }
 
+namespace std {
+    template<> struct hash<pair<float, float>> {
+        size_t operator()(const pair<float, float>& p) const noexcept {
+            return hash<float>{}(p.first) ^ (hash<float>{}(p.second) << 1);
+        }
+    };
+}
+
+static std::unordered_map<std::pair<float,float>, std::uniform_real_distribution<float>> uniformRealDistMap;
+
+float GenerateRandomNumber(float from, float to) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+
+    auto key = std::make_pair(from, to);
+    auto findResult = uniformRealDistMap.find(std::make_pair(from, to));
+    if(findResult == uniformRealDistMap.end()) {
+        uniformRealDistMap.emplace(std::make_pair(key, std::uniform_real_distribution<float>(from, to)));
+        return uniformRealDistMap[key](gen);
+    }
+    return findResult->second(gen);
+}
+
 entt::entity CreatePlayerBullet(entt::registry& reg) {
     const entt::entity id = reg.create();
     reg.emplace<PositionComponent>(id, 0.0f, 100.0f);
@@ -78,12 +102,22 @@ entt::entity CreatePlayer(entt::registry& reg) {
     return id;
 }
 
+entt::entity CreateEnemy(entt::registry& reg) {
+    const entt::entity self = reg.create();
+    reg.emplace<PositionComponent>(self, SCREEN_WIDTH + 50.0f, GenerateRandomNumber(0.0f, SCREEN_HEIGHT - 48.0f));
+    auto speed = -GenerateRandomNumber(100.0f, 200.0f);
+    reg.emplace<VelocityComponent>(self, -GenerateRandomNumber(100.0f, 200.0f), 0.0f);
+    reg.emplace<TextureComponent>(self, FindTexture(reg, "gfx/enemy.png"));
+    return self;
+}
+
 entt::registry CreatePlayground(const SDLRenderer& renderer) {
     LoadTexture(renderer, "gfx/player.png");
     LoadTexture(renderer, "gfx/playerBullet.png");
+    LoadTexture(renderer, "gfx/enemy.png");
 
     auto reg = CreateRegistry();
-    const entt::entity player = CreatePlayer(reg);
+    CreatePlayer(reg);
     return reg;
 }
 
