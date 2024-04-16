@@ -1,4 +1,5 @@
 #include "Player.hpp"
+#include "PlayerBullet.hpp"
 
 void Player::PlayerScript::OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) {
     switch(event.type) {
@@ -16,6 +17,9 @@ void Player::PlayerScript::OnEvent(entt:: registry& reg, entt::entity self, cons
         case SDLK_DOWN:
             reg.get<KeyStateComponent>(self).downKeyDown = true;
             break;
+        case SDLK_SPACE:
+            reg.get<KeyStateComponent>(self).fireKeyDown = true;
+            break;
     }
     break;
     case SDL_KEYUP:
@@ -31,6 +35,9 @@ void Player::PlayerScript::OnEvent(entt:: registry& reg, entt::entity self, cons
             break;
         case SDLK_DOWN:
             reg.get<KeyStateComponent>(self).downKeyDown = false;
+            break;
+        case SDLK_SPACE:
+            reg.get<KeyStateComponent>(self).fireKeyDown = false;
             break;
         }
     }
@@ -91,4 +98,16 @@ void Player::PlayerScript::OnUpdate(entt:: registry& reg, entt::entity self, flo
     if (nextY < 0 || (nextY + texture.height) > SCREEN_HEIGHT) {
         velocity.dy = 0;
     }
+
+    // Handle user shooting
+    auto& fireCooldown = reg.get<FireCooldown>(self);
+
+    if(keyState.fireKeyDown && fireCooldown.timeout <= 0.0f) {
+        AddToGame(PlayerBullet(position.x + texture.width, position.y + texture.height / 2.0f));
+
+        fireCooldown.timeout = PLAYER_FIRE_COOLDOWN_TIME;
+    }
+
+    fireCooldown.timeout -= dt;
+
 }

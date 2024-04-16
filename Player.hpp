@@ -9,6 +9,10 @@ class Player {
         bool fireKeyDown = false;
     };
 
+    struct FireCooldown {
+        float timeout;
+    };
+
     struct PlayerScript: public Script {
         void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event);
         void OnUpdate(entt:: registry& reg, entt::entity self, float dt);
@@ -21,6 +25,7 @@ public:
             .AddComponent<VelocityComponent>(0.0f, 0.0f)
             .AddComponent<TextureComponent>(Game::LoadTexture("gfx/player.png"))
             .AddComponent<KeyStateComponent>()
+            .AddComponent<FireCooldown>()
             .AddComponent<ScriptComponent>(PlayerScript{});
     };
 };
