@@ -4,8 +4,13 @@
 #include "SpawnEnemy.hpp"
 
 int main() {
+    auto setting = Setting()
+        .SetTitle("Shooter")
+        .SetScreenWidth(SCREEN_WIDTH)
+        .SetScreenHeight(SCREEN_HEIGHT)
+        .SetSecondPerFrame(SECOND_PER_FRAME);
 
-    Game::Run("Shooter", SCREEN_WIDTH, SCREEN_HEIGHT, []() {
+    Game::Run(setting, []() {
         AddToGame( Player() );
         AddToGame( SpawnEnemy() );
     });

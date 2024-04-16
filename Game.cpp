@@ -1,11 +1,11 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include "Game.hpp"
-#include "GameObject.hpp"
 
 SDL_Window *Game::m_window = nullptr;
 SDL_Renderer *Game::m_renderer = nullptr;
 std::unordered_map<std::string, SDL_Texture *> Game::m_textureCache = {};
+float Game::m_secondPerFrame = 0.01;
 std::random_device Game::m_randomDevice;
 std::mt19937 Game::m_radomGenerator(Game::m_randomDevice());
 std::map<std::pair<float, float>, std::uniform_real_distribution<float>> Game::m_randomDistributions;
@@ -37,7 +37,7 @@ void Game::invokeCallOnUpdate(entt::registry &reg)
     auto view = reg.view<ScriptComponent>();
     view.each([&reg](entt::entity entity, auto &script) {
         auto gameObject = GameObject(entity);
-        script.OnUpdate(gameObject, SECOND_PER_UPDATE);
+        script.OnUpdate(gameObject, m_secondPerFrame);
     });
 }
 
@@ -45,8 +45,8 @@ void Game::invokeMovement(entt::registry &reg)
 {
     auto view = reg.view<PositionComponent, const VelocityComponent>();
     view.each([](auto &pos, const auto &vel) {
-        pos.x += vel.dx * SECOND_PER_UPDATE;
-        pos.y += vel.dy * SECOND_PER_UPDATE;
+        pos.x += vel.dx * m_secondPerFrame;
+        pos.y += vel.dy * m_secondPerFrame;
     });
 }
 
@@ -57,8 +57,8 @@ void Game::invokeDrawTexture(entt::registry &reg, float interpolation)
         if(reg.any_of<VelocityComponent>(entity)) {
             auto& vel = reg.get<VelocityComponent>(entity);
             SDL_Rect dst = {
-                static_cast<int>(pos.x + vel.dx * SECOND_PER_UPDATE * interpolation + 0.5f),
-                static_cast<int>(pos.y + vel.dy * SECOND_PER_UPDATE * interpolation + 0.5f),
+                static_cast<int>(pos.x + vel.dx * m_secondPerFrame * interpolation + 0.5f),
+                static_cast<int>(pos.y + vel.dy * m_secondPerFrame * interpolation + 0.5f),
                 tex.width, tex.height
             };
             SDL_RenderCopy(m_renderer, tex.texture, NULL, &dst);
@@ -100,7 +100,7 @@ TextureComponent Game::LoadTexture(const std::string& path) {
     return TextureComponent{texture, w, h};
 }
 
-void Game::Run(const std::string& title, int width, int height, const std::function<void(void)>& onSetup) {
+void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup) {
         // Initialize SDL
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
             std::cerr << "SDL initialization failed: " << SDL_GetError() << std::endl;
@@ -108,7 +108,11 @@ void Game::Run(const std::string& title, int width, int height, const std::funct
         }
 
         // Create SDL window
-        m_window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+        m_window = SDL_CreateWindow(setting.GetTitle().c_str(),
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            setting.GetScreenWidth(), setting.GetScreenHeight(),
+            SDL_WINDOW_SHOWN);
+
         if (!m_window) {
             std::cerr << "Failed to create SDL window: " << SDL_GetError() << std::endl;
             SDL_Quit();
@@ -129,12 +133,13 @@ void Game::Run(const std::string& title, int width, int height, const std::funct
         reg.on_construct<ScriptComponent>().connect<&onScriptComponentConstructed>();
         reg.on_destroy<ScriptComponent>().connect<&onScriptComponentDestroyed>();
 
+        m_secondPerFrame = setting.GetSecondPerFrame();
         onSetup();
 
         // Enter loop
         bool quit = false;
         SDL_Event event;
-        float ms_per_update = SECOND_PER_UPDATE * 1000.0f;
+        float ms_per_update = setting.GetSecondPerFrame() * 1000.0f;
         float previous = static_cast<float>(SDL_GetTicks64());
         float lag = 0.0f;
 

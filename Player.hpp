@@ -1,3 +1,4 @@
+#include "Shooter.hpp"
 #include "Game.hpp"
 
 class Player {

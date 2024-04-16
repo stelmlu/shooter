@@ -4,7 +4,7 @@
 #include <functional>
 #include <random>
 #include <string>
-#include "Shooter.hpp"
+#include "Setting.hpp"
 #include "Registry.hpp"
 #include "GameObject.hpp"
 #include "Component/ScriptComponent.hpp"
@@ -27,6 +27,7 @@ class Game {
     static SDL_Window* m_window;
     static SDL_Renderer* m_renderer;
     static std::unordered_map<std::string, SDL_Texture*> m_textureCache;
+    static float m_secondPerFrame;
 
     static std::random_device m_randomDevice;
     static std::mt19937 m_radomGenerator;
@@ -65,7 +66,7 @@ class Game {
 
 public:
     // Run function to initialize SDL window, renderer, and enter event loop
-    static void Run(const std::string& title, int width, int height, const std::function<void(void)>& onSetup);
+    static void Run(const Setting& setting, const std::function<void(void)>& onSetup);
     
     // LoadTexture function declaration
     static TextureComponent LoadTexture(const std::string& path);
