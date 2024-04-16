@@ -1,8 +1,5 @@
-#include "Game.hpp"
 #include "Shooter.hpp"
-#include "Component/PositionComponent.hpp"
-#include "Component/VelocityComponent.hpp"
-#include "Component/ScriptComponent.hpp"
+#include "GameEngine/Game.hpp"
 
 class PlayerBullet {
     float m_x, m_y;

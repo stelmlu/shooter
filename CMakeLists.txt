@@ -19,7 +19,7 @@ find_package(SDL2_image REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS} ${})
 
 # Define your project's executable
-add_executable(${PROJECT_NAME} Main.cpp Game.cpp Player.cpp)
+add_executable(${PROJECT_NAME} Main.cpp GameEngine/Game.cpp Player.cpp)
 
 # Link against the SDL2 library
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image)

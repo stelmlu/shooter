@@ -1,0 +1,12 @@
+#pragma once
+#include "Setting.hpp"
+#include "Registry.hpp"
+#include "GameObject.hpp"
+#include "RedTag.hpp"
+#include "BlueTag.hpp"
+#include "GreenTag.hpp"
+#include "YellowTag.hpp"
+#include "ScriptComponent.hpp"
+#include "PositionComponent.hpp"
+#include "VelocityComponent.hpp"
+#include "TextureComponent.hpp"

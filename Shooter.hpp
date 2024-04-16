@@ -1,8 +1,5 @@
 #pragma once
-#include "Component/RedTag.hpp"
-#include "Component/BlueTag.hpp"
-#include "Component/GreenTag.hpp"
-
+#include "GameEngine/Game.hpp"
 
 using PlayerTag = RedTag;
 using PlayerBulletTag = BlueTag;

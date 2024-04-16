@@ -1,5 +1,5 @@
-#include "Game.hpp"
 #include "Shooter.hpp"
+#include "GameEngine/GameEngine.hpp"
 
 class Enemy {
     struct EnemyScript: public Script {

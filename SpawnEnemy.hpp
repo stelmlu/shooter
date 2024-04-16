@@ -1,7 +1,6 @@
-#include "Game.hpp"
 #include "Shooter.hpp"
+#include "GameEngine/GameEngine.hpp"
 #include "Enemy.hpp"
-#include "Component/ScriptComponent.hpp"
 
 class SpawnEnemy {
     struct CountdownNextEnemyComponent {

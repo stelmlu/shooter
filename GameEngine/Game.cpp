@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <SDL_image.h>
+#include <iostream>
 #include "Game.hpp"
 
 SDL_Window *Game::m_window = nullptr;

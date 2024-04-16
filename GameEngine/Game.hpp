@@ -1,22 +1,12 @@
 #pragma once
 #include <SDL.h>
-#include <iostream>
-#include <functional>
+#include <map>
+#include <unordered_map>
 #include <random>
-#include <string>
-#include "Setting.hpp"
-#include "Registry.hpp"
-#include "GameObject.hpp"
-#include "Component/ScriptComponent.hpp"
-#include "Component/PositionComponent.hpp"
-#include "Component/VelocityComponent.hpp"
-#include "Component/TextureComponent.hpp"
-#include "Component/RedTag.hpp"
-#include "Component/BlueTag.hpp"
-#include "Component/GreenTag.hpp"
-#include "Component/YellowTag.hpp"
+#include <entity/registry.hpp>
+#include "GameEngine.hpp"
 
-// Apply function to clear EnTT registry and call onApply function
+// Add to the game clear EnTT registry and call onApply function
 template<typename Func>
 static void AddToGame(Func onApply, bool reset = false) {
     if (reset) Registry::Get().clear();

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <memory>
 #include <entity/registry.hpp>
-#include "../GameObject.hpp"
+#include "GameObject.hpp"
 
 struct Script {
     void OnConstructed(GameObject& self) {}

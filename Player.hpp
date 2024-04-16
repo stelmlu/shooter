@@ -1,5 +1,5 @@
 #include "Shooter.hpp"
-#include "Game.hpp"
+#include "GameEngine/Game.hpp"
 
 class Player {
     struct KeyStateComponent {
