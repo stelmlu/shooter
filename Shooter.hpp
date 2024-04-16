@@ -24,3 +24,6 @@ constexpr float ENEMY_SPAWN_TIMEOUT_MIN = 1.2f;
 constexpr float ENEMY_SPAWN_TIMEOUT_MAX = 2.0f;
 constexpr float ENEMY_MIN_SPEED = 200.0f;
 constexpr float ENEMY_MAX_SPEED = 400.0f;
+constexpr float ENEMY_BULLET_SPEED = 200.0f;
+constexpr float ENEMY_BULLET_SPAWN_TIMEOUT_MIN = 0.5f;
+constexpr float ENEMY_BULLET_SPAWN_TIMEOUT_MAX = 1.5f;

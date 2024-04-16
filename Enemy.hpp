@@ -1,5 +1,6 @@
 #include "Shooter.hpp"
 #include "GameEngine/GameEngine.hpp"
+#include "EnemyBullet.hpp"
 
 class Enemy {
     struct EnemyScript: public Script {
