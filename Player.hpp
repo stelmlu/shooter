@@ -14,8 +14,8 @@ class Player {
     };
 
     struct PlayerScript: public Script {
-        void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event);
-        void OnUpdate(entt:: registry& reg, entt::entity self, float dt);
+        void OnEvent(GameObject& self, const SDL_Event& event);
+        void OnUpdate(GameObject& self, float dt);
     };
 
 public:

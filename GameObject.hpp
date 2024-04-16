@@ -1,3 +1,4 @@
+#pragma once
 #include <entt.hpp>
 #include "Registry.hpp"
 
@@ -35,6 +36,10 @@ public:
     GameObject& RemoveComponent() {
         m_registry.erase<T>(m_entity);
         return *this;
+    }
+
+    void Destroy() {
+        m_registry.destroy(m_entity);
     }
 
 private:

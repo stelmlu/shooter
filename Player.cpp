@@ -1,53 +1,54 @@
+#include "GameObject.hpp"
 #include "Player.hpp"
 #include "PlayerBullet.hpp"
 
-void Player::PlayerScript::OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) {
+void Player::PlayerScript::OnEvent(GameObject& self, const SDL_Event& event) {
     switch(event.type) {
     case SDL_KEYDOWN:
         switch(event.key.keysym.sym) {
         case SDLK_LEFT:
-            reg.get<KeyStateComponent>(self).leftKeyDown = true;
+            self.GetComponent<KeyStateComponent>().leftKeyDown = true;
             break;
         case SDLK_RIGHT:
-            reg.get<KeyStateComponent>(self).rightKeyDown = true;
+            self.GetComponent<KeyStateComponent>().rightKeyDown = true;
             break;
         case SDLK_UP:
-            reg.get<KeyStateComponent>(self).upKeyDown = true;
+            self.GetComponent<KeyStateComponent>().upKeyDown = true;
             break;
         case SDLK_DOWN:
-            reg.get<KeyStateComponent>(self).downKeyDown = true;
+            self.GetComponent<KeyStateComponent>().downKeyDown = true;
             break;
         case SDLK_SPACE:
-            reg.get<KeyStateComponent>(self).fireKeyDown = true;
+            self.GetComponent<KeyStateComponent>().fireKeyDown = true;
             break;
     }
     break;
     case SDL_KEYUP:
         switch(event.key.keysym.sym) {
         case SDLK_LEFT:
-            reg.get<KeyStateComponent>(self).leftKeyDown = false;
+            self.GetComponent<KeyStateComponent>().leftKeyDown = false;
             break;
         case SDLK_RIGHT:
-            reg.get<KeyStateComponent>(self).rightKeyDown = false;
+            self.GetComponent<KeyStateComponent>().rightKeyDown = false;
             break;
         case SDLK_UP:
-            reg.get<KeyStateComponent>(self).upKeyDown = false;
+            self.GetComponent<KeyStateComponent>().upKeyDown = false;
             break;
         case SDLK_DOWN:
-            reg.get<KeyStateComponent>(self).downKeyDown = false;
+            self.GetComponent<KeyStateComponent>().downKeyDown = false;
             break;
         case SDLK_SPACE:
-            reg.get<KeyStateComponent>(self).fireKeyDown = false;
+            self.GetComponent<KeyStateComponent>().fireKeyDown = false;
             break;
         }
     }
 }
 
-void Player::PlayerScript::OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
-    const auto& keyState = reg.get<KeyStateComponent>(self);
-    auto& velocity = reg.get<VelocityComponent>(self);
-    auto& position = reg.get<PositionComponent>(self);
-    const auto& texture = reg.get<TextureComponent>(self);
+void Player::PlayerScript::OnUpdate(GameObject& self, float dt) {
+    const auto& keyState = self.GetComponent<KeyStateComponent>();
+    auto& velocity = self.GetComponent<VelocityComponent>();
+    auto& position = self.GetComponent<PositionComponent>();
+    const auto& texture = self.GetComponent<TextureComponent>();
 
     // Apply acceleration if key is pressed.
     if(keyState.leftKeyDown) {
@@ -100,7 +101,7 @@ void Player::PlayerScript::OnUpdate(entt:: registry& reg, entt::entity self, flo
     }
 
     // Handle user shooting
-    auto& fireCooldown = reg.get<FireCooldown>(self);
+    auto& fireCooldown = self.GetComponent<FireCooldown>();
 
     if(keyState.fireKeyDown && fireCooldown.timeout <= 0.0f) {
         AddToGame(PlayerBullet(position.x + texture.width, position.y + texture.height / 2.0f));

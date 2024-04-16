@@ -8,13 +8,12 @@ class PlayerBullet {
     float m_x, m_y;
 
     struct PlayerBulletScript: public Script {
-        void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
-            const auto& position = reg.get<PositionComponent>(self);
-            const auto& texture = reg.get<TextureComponent>(self);
+        void OnUpdate(GameObject& self, float dt) {
+            const auto& position = self.GetComponent<PositionComponent>();
+            const auto& texture = self.GetComponent<TextureComponent>();
 
             if((position.x + texture.width) > SCREEN_WIDTH) {
-                reg.destroy(self);
-                std::cout << "Bullet destroyed!\n";
+                self.Destroy();
             }
         }
     };

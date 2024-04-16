@@ -3,24 +3,25 @@
 #include <cstdint>
 #include <memory>
 #include <entity/registry.hpp>
+#include "../GameObject.hpp"
 
 struct Script {
-    void OnConstructed(entt:: registry& reg, entt::entity self) {}
-    void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) {}
-    void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {}
-    void OnCollision(entt:: registry& reg, entt::entity self, entt::entity other) {}
-    void OnDestroyed(entt:: registry& reg, entt::entity self) {}
+    void OnConstructed(GameObject& self) {}
+    void OnEvent(GameObject& self, const SDL_Event& event) {}
+    void OnUpdate(GameObject& self, float dt) {}
+    void OnCollision(GameObject& self, GameObject& other) {}
+    void OnDestroyed(GameObject& self) {}
 };
 
 class ScriptComponent {
 public:
     struct IScript {
         virtual ~IScript() = default;
-        virtual void OnConstructed(entt:: registry& reg, entt::entity self) = 0;
-        virtual void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) = 0;
-        virtual void OnUpdate(entt:: registry& reg, entt::entity self, float dt) = 0;
-        virtual void OnCollision(entt:: registry& reg, entt::entity self, entt::entity other) = 0;
-        virtual void OnDestroyed(entt:: registry& reg, entt::entity self) = 0;
+        virtual void OnConstructed(GameObject& self) = 0;
+        virtual void OnEvent(GameObject& self, const SDL_Event& event) = 0;
+        virtual void OnUpdate(GameObject& self, float dt) = 0;
+        virtual void OnCollision(GameObject& self, GameObject& other) = 0;
+        virtual void OnDestroyed(GameObject& self) = 0;
         virtual std::unique_ptr<IScript> clone() const = 0;
     };
 
@@ -34,24 +35,24 @@ private:
     public:
         ScriptModel(T script) : scriptImpl(std::move(script)) {}
 
-        void OnConstructed(entt:: registry& reg, entt::entity self) override {
-            scriptImpl.OnConstructed(reg, self);
+        void OnConstructed(GameObject& self) override {
+            scriptImpl.OnConstructed(self);
         }
 
-        void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) override {
-            scriptImpl.OnEvent(reg, self, event);
+        void OnEvent(GameObject& self, const SDL_Event& event) override {
+            scriptImpl.OnEvent(self, event);
         }
 
-        void OnUpdate(entt:: registry& reg, entt::entity self, float dt) override {
-            scriptImpl.OnUpdate(reg, self, dt);
+        void OnUpdate(GameObject& self, float dt) override {
+            scriptImpl.OnUpdate(self, dt);
         }
 
-        void OnCollision(entt:: registry& reg, entt::entity self, entt::entity other) override {
-            scriptImpl.OnCollision(reg, self, other);
+        void OnCollision(GameObject& self, GameObject& other) override {
+            scriptImpl.OnCollision(self, other);
         }
 
-        void OnDestroyed(entt:: registry& reg, entt::entity self) override {
-            scriptImpl.OnDestroyed(reg, self);
+        void OnDestroyed(GameObject& self) override {
+            scriptImpl.OnDestroyed(self);
         }
 
         std::unique_ptr<IScript> clone() const override {
@@ -72,24 +73,24 @@ public:
         return *this;
     }
 
-    void OnConstructed(entt:: registry& reg, entt::entity self) {
-        if (script) script->OnConstructed(reg, self);
+    void OnConstructed(GameObject& self) {
+        if (script) script->OnConstructed(self);
     }
 
-    void OnEvent(entt:: registry& reg, entt::entity self, const SDL_Event& event) {
-        if (script) script->OnEvent(reg, self, event);
+    void OnEvent(GameObject& self, const SDL_Event& event) {
+        if (script) script->OnEvent(self, event);
     }
 
-    void OnUpdate(entt:: registry& reg, entt::entity self, float dt) {
-        if (script) script->OnUpdate(reg, self, dt);
+    void OnUpdate(GameObject& self, float dt) {
+        if (script) script->OnUpdate(self, dt);
     }
 
-    void OnCollision(entt:: registry& reg, entt::entity self, entt::entity other) {
-        if (script) script->OnCollision(reg, self, other);
+    void OnCollision(GameObject& self, GameObject& other) {
+        if (script) script->OnCollision(self, other);
     }
 
-    void OnDestroyed(entt:: registry& reg, entt::entity self) {
-        if (script) script->OnDestroyed(reg, self);
+    void OnDestroyed(GameObject& self) {
+        if (script) script->OnDestroyed(self);
     }
 
     ~ScriptComponent() {

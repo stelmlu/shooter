@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include "Game.hpp"
+#include "GameObject.hpp"
 
 SDL_Window *Game::m_window = nullptr;
 SDL_Renderer *Game::m_renderer = nullptr;
@@ -10,29 +11,33 @@ std::mt19937 Game::m_radomGenerator(Game::m_randomDevice());
 std::map<std::pair<float, float>, std::uniform_real_distribution<float>> Game::m_randomDistributions;
 
 
-void Game::onScriptComponentConstructed(entt::registry &reg, entt::entity self)
+void Game::onScriptComponentConstructed(entt::registry &reg, entt::entity entity)
 {
-    reg.get<ScriptComponent>(self).OnConstructed(reg, self);
+    auto gameObject = GameObject(entity);
+    reg.get<ScriptComponent>(entity).OnConstructed(gameObject);
 }
 
-void Game::onScriptComponentDestroyed(entt::registry &reg, entt::entity self)
+void Game::onScriptComponentDestroyed(entt::registry &reg, entt::entity entity)
 {
-    reg.get<ScriptComponent>(self).OnDestroyed(reg, self);
+    auto gameObject = GameObject(entity);
+    reg.get<ScriptComponent>(entity).OnDestroyed(gameObject);
 }
 
 void Game::invokeCallOnEvent(entt::registry &reg, const SDL_Event &event)
 {
     auto view = reg.view<ScriptComponent>();
-    view.each([&reg, &event](entt::entity self, auto &script) {
-        script.OnEvent(reg, self, event);
+    view.each([&reg, &event](entt::entity entity, auto &script) {
+        auto gameObject = GameObject(entity);
+        script.OnEvent(gameObject, event);
     });
 }
 
 void Game::invokeCallOnUpdate(entt::registry &reg)
 {
     auto view = reg.view<ScriptComponent>();
-    view.each([&reg](entt::entity self, auto &script) {
-        script.OnUpdate(reg, self, SECOND_PER_UPDATE);
+    view.each([&reg](entt::entity entity, auto &script) {
+        auto gameObject = GameObject(entity);
+        script.OnUpdate(gameObject, SECOND_PER_UPDATE);
     });
 }
 
@@ -48,12 +53,12 @@ void Game::invokeMovement(entt::registry &reg)
 void Game::invokeDrawTexture(entt::registry &reg, float interpolation)
 {
     auto view = reg.view<const PositionComponent, const TextureComponent>();
-    view.each([&reg, interpolation](entt::entity self, const auto &pos, const auto &tex) {
-        if(reg.any_of<VelocityComponent>(self)) {
-            auto& vel = reg.get<VelocityComponent>(self);
+    view.each([&reg, interpolation](entt::entity entity, const auto &pos, const auto &tex) {
+        if(reg.any_of<VelocityComponent>(entity)) {
+            auto& vel = reg.get<VelocityComponent>(entity);
             SDL_Rect dst = {
-                static_cast<int>(pos.x + vel.dx*SECOND_PER_UPDATE*interpolation + 0.5f),
-                static_cast<int>(pos.y + vel.dy*SECOND_PER_UPDATE*interpolation + 0.5f),
+                static_cast<int>(pos.x + vel.dx * SECOND_PER_UPDATE * interpolation + 0.5f),
+                static_cast<int>(pos.y + vel.dy * SECOND_PER_UPDATE * interpolation + 0.5f),
                 tex.width, tex.height
             };
             SDL_RenderCopy(m_renderer, tex.texture, NULL, &dst);
