@@ -154,6 +154,10 @@ void Game::Run(const std::string& title, int width, int height, const std::funct
             while(lag >= ms_per_update) {
                 lag -= ms_per_update;
                 invokeCallOnUpdate(reg);
+                invokeOnCollision<RedTag>(reg);
+                invokeOnCollision<BlueTag>(reg);
+                invokeOnCollision<GreenTag>(reg);
+                invokeOnCollision<YellowTag>(reg);
                 invokeMovement(reg);
             }
 

@@ -1,4 +1,12 @@
 #pragma once
+#include "Component/RedTag.hpp"
+#include "Component/BlueTag.hpp"
+#include "Component/GreenTag.hpp"
+
+
+using PlayerTag = RedTag;
+using PlayerBulletTag = BlueTag;
+using EnemyTag = GreenTag;
 
 // Screen dimension constants
 constexpr int SCREEN_WIDTH = 800;

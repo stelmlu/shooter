@@ -18,7 +18,9 @@ public:
         auto& self = GameObject()
             .AddComponent<VelocityComponent>( -Game::GenerateRandom(ENEMY_MIN_SPEED, ENEMY_MAX_SPEED), 0.0f)
             .AddComponent<TextureComponent>( Game::LoadTexture("gfx/enemy.png") )
-            .AddComponent<ScriptComponent>( EnemyScript() );
+            .AddComponent<ScriptComponent>( EnemyScript() )
+            .AddComponent<PlayerBulletTag>()
+            .AddComponent<EnemyTag>();
         
         const auto& texture = self.GetComponent<TextureComponent>();
         float x = SCREEN_WIDTH + texture.width;

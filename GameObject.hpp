@@ -39,7 +39,9 @@ public:
     }
 
     void Destroy() {
-        m_registry.destroy(m_entity);
+        if(m_registry.valid(m_entity)) {
+            m_registry.destroy(m_entity);
+        }
     }
 
 private:

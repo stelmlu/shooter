@@ -11,6 +11,10 @@
 #include "Component/PositionComponent.hpp"
 #include "Component/VelocityComponent.hpp"
 #include "Component/TextureComponent.hpp"
+#include "Component/RedTag.hpp"
+#include "Component/BlueTag.hpp"
+#include "Component/GreenTag.hpp"
+#include "Component/YellowTag.hpp"
 
 // Apply function to clear EnTT registry and call onApply function
 template<typename Func>
@@ -34,6 +38,30 @@ class Game {
     static void invokeCallOnUpdate(entt::registry& reg);
     static void invokeMovement(entt::registry& reg);
     static void invokeDrawTexture(entt::registry& reg, float interpolation);
+    template<typename Tag> static void invokeOnCollision(entt::registry& reg) {
+        auto view = reg.view<Tag, PositionComponent, TextureComponent, VelocityComponent, ScriptComponent>();
+        auto otherView = reg.view<Tag, PositionComponent, TextureComponent, VelocityComponent>();
+        for(entt::entity self : view) {
+            const auto& pos = reg.get<PositionComponent>(self);
+            const auto& tex = reg.get<TextureComponent>(self);
+            const auto& vel = reg.get<VelocityComponent>(self);
+            auto& script = reg.get<ScriptComponent>(self);
+            for(entt::entity other : otherView) {
+                if(self == other) continue;
+                const auto& otherPos = reg.get<PositionComponent>(other);
+                const auto& otherTex = reg.get<TextureComponent>(other);
+                const auto& otherVel = reg.get<VelocityComponent>(other);
+
+                
+                if((pos.x <= (otherPos.x + otherTex.width) && (pos.x + tex.width) >= otherPos.x) &&
+                   (pos.y <= (otherPos.y + otherTex.height) && (pos.y + tex.height) >= otherPos.y)) {
+                    GameObject go = GameObject(self);
+                    GameObject otherGo = GameObject(other);
+                    script.OnCollision(go, otherGo);
+                }
+            }
+        }
+    }
 
 public:
     // Run function to initialize SDL window, renderer, and enter event loop

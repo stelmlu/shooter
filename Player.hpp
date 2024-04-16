@@ -16,6 +16,10 @@ class Player {
     struct PlayerScript: public Script {
         void OnEvent(GameObject& self, const SDL_Event& event);
         void OnUpdate(GameObject& self, float dt);
+        void OnCollision(GameObject& self, GameObject& other) {
+            self.Destroy();
+            other.Destroy();
+        }
     };
 
 public:
@@ -26,6 +30,7 @@ public:
             .AddComponent<TextureComponent>(Game::LoadTexture("gfx/player.png"))
             .AddComponent<KeyStateComponent>()
             .AddComponent<FireCooldown>()
-            .AddComponent<ScriptComponent>(PlayerScript{});
+            .AddComponent<ScriptComponent>(PlayerScript{})
+            .AddComponent<EnemyTag>();
     };
 };

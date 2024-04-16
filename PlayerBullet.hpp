@@ -16,6 +16,11 @@ class PlayerBullet {
                 self.Destroy();
             }
         }
+
+        void OnCollision(GameObject& self, GameObject& other) {
+            self.Destroy();
+            other.Destroy();
+        }
     };
 
 public:
@@ -25,7 +30,8 @@ public:
         auto gameObject = GameObject()
             .AddComponent<VelocityComponent>( PLAYER_BULLET_SPEED, 0.0f )
             .AddComponent<TextureComponent>( Game::LoadTexture("gfx/playerBullet.png") )
-            .AddComponent<ScriptComponent>(PlayerBulletScript());
+            .AddComponent<ScriptComponent>(PlayerBulletScript())
+            .AddComponent<PlayerBulletTag>();
         
         auto& textureComponent = gameObject.GetComponent<TextureComponent>();
 
