@@ -26,12 +26,14 @@ class Player {
 public:
     void operator()() {
         GameObject()
+            .AddComponent<SearchableComponent>("player")
             .AddComponent<PositionComponent>(Game::GenerateRandom(100.0f, 400.0f), 100.f)
             .AddComponent<VelocityComponent>(0.0f, 0.0f)
             .AddComponent<TextureComponent>(Game::LoadTexture("gfx/player.png"))
             .AddComponent<KeyStateComponent>()
             .AddComponent<FireCooldown>()
             .AddComponent<ScriptComponent>(PlayerScript{})
-            .AddComponent<EnemyTag>();
+            .AddComponent<EnemyTag>()
+            .AddComponent<EnemyBulletTag>();
     };
 };

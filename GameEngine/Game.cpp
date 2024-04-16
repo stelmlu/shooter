@@ -6,6 +6,7 @@
 SDL_Window *Game::m_window = nullptr;
 SDL_Renderer *Game::m_renderer = nullptr;
 std::unordered_map<std::string, SDL_Texture *> Game::m_textureCache = {};
+std::unordered_map<std::string, entt::entity> Game::m_searchableMap = {};
 float Game::m_secondPerFrame = 0.01;
 std::random_device Game::m_randomDevice;
 std::mt19937 Game::m_radomGenerator(Game::m_randomDevice());
@@ -14,21 +15,36 @@ std::map<std::pair<float, float>, std::uniform_real_distribution<float>> Game::m
 
 void Game::onScriptComponentConstructed(entt::registry &reg, entt::entity entity)
 {
-    auto gameObject = GameObject(entity);
+    auto gameObject = GameObject(reg, entity);
     reg.get<ScriptComponent>(entity).OnConstructed(gameObject);
 }
 
 void Game::onScriptComponentDestroyed(entt::registry &reg, entt::entity entity)
 {
-    auto gameObject = GameObject(entity);
+    auto gameObject = GameObject(reg, entity);
     reg.get<ScriptComponent>(entity).OnDestroyed(gameObject);
+}
+
+void Game::onSearchableComponentConstructed(entt::registry& reg, entt::entity entity)
+{
+    auto& searchableComponent = reg.get<SearchableComponent>(entity);
+    m_searchableMap.emplace(std::make_pair(searchableComponent.name, entity));
+}
+
+void Game::onSearchableComponentDestroyed(entt::registry& reg, entt::entity entity)
+{
+    auto& searchableComponent = reg.get<SearchableComponent>(entity);
+    auto findResult = m_searchableMap.find(searchableComponent.name);
+    if(findResult != m_searchableMap.end()) {
+        m_searchableMap.erase(findResult);
+    }
 }
 
 void Game::invokeCallOnEvent(entt::registry &reg, const SDL_Event &event)
 {
     auto view = reg.view<ScriptComponent>();
     view.each([&reg, &event](entt::entity entity, auto &script) {
-        auto gameObject = GameObject(entity);
+        auto gameObject = GameObject(reg, entity);
         script.OnEvent(gameObject, event);
     });
 }
@@ -37,7 +53,7 @@ void Game::invokeCallOnUpdate(entt::registry &reg)
 {
     auto view = reg.view<ScriptComponent>();
     view.each([&reg](entt::entity entity, auto &script) {
-        auto gameObject = GameObject(entity);
+        auto gameObject = GameObject(reg, entity);
         script.OnUpdate(gameObject, m_secondPerFrame);
     });
 }
@@ -133,6 +149,8 @@ void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
         entt::registry& reg = Registry::Get();
         reg.on_construct<ScriptComponent>().connect<&onScriptComponentConstructed>();
         reg.on_destroy<ScriptComponent>().connect<&onScriptComponentDestroyed>();
+        reg.on_construct<SearchableComponent>().connect<&onSearchableComponentConstructed>();
+        reg.on_destroy<SearchableComponent>().connect<&onSearchableComponentDestroyed>();
 
         m_secondPerFrame = setting.GetSecondPerFrame();
         onSetup();

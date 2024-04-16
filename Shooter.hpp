@@ -4,6 +4,7 @@
 using PlayerTag = RedTag;
 using PlayerBulletTag = BlueTag;
 using EnemyTag = GreenTag;
+using EnemyBulletTag = YellowTag;
 
 // Screen dimension constants
 constexpr int SCREEN_WIDTH = 800;

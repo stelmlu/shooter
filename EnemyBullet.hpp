@@ -53,12 +53,13 @@ public:
         auto gameObject = GameObject()
             .AddComponent<VelocityComponent>(dx * ENEMY_BULLET_SPEED, dy * ENEMY_BULLET_SPEED)
             .AddComponent<TextureComponent>( Game::LoadTexture("gfx/alienBullet.png"))
-            .AddComponent<ScriptComponent>( EnemyBulletScript() );
+            .AddComponent<ScriptComponent>( EnemyBulletScript() )
+            .AddComponent<EnemyBulletTag>();
         
         const auto& tex = gameObject.GetComponent<TextureComponent>();
 
         gameObject.AddComponent<PositionComponent>(
-            dx + tex.width / 2.0f,
-            dy + tex.height / 2.0f);
+            m_enemyX + tex.width / 2.0f,
+            m_enemyY + tex.height / 2.0f);
     }
 };

@@ -18,6 +18,7 @@ class Game {
     static SDL_Renderer* m_renderer;
     static std::unordered_map<std::string, SDL_Texture*> m_textureCache;
     static float m_secondPerFrame;
+    static std::unordered_map<std::string, entt::entity> m_searchableMap;
 
     static std::random_device m_randomDevice;
     static std::mt19937 m_radomGenerator;
@@ -25,6 +26,8 @@ class Game {
 
     static void onScriptComponentConstructed(entt::registry& reg, entt::entity self);
     static void onScriptComponentDestroyed(entt::registry& reg, entt::entity self);
+    static void onSearchableComponentConstructed(entt::registry& reg, entt::entity entity);
+    static void onSearchableComponentDestroyed(entt::registry& reg, entt::entity entity);
     static void invokeCallOnEvent(entt::registry& reg, const SDL_Event& event);
     static void invokeCallOnUpdate(entt::registry& reg);
     static void invokeMovement(entt::registry& reg);
@@ -46,8 +49,8 @@ class Game {
                 
                 if((pos.x <= (otherPos.x + otherTex.width) && (pos.x + tex.width) >= otherPos.x) &&
                    (pos.y <= (otherPos.y + otherTex.height) && (pos.y + tex.height) >= otherPos.y)) {
-                    GameObject go = GameObject(self);
-                    GameObject otherGo = GameObject(other);
+                    GameObject go = GameObject(reg, self);
+                    GameObject otherGo = GameObject(reg, other);
                     script.OnCollision(go, otherGo);
                 }
             }
@@ -73,5 +76,12 @@ public:
 
         // Use the distribution to generate a random float
         return m_randomDistributions[key](m_radomGenerator);
+    }
+
+    // Find game object that has searchable component
+    static GameObject FindGameObject(const std::string& name) {
+        auto findResult = m_searchableMap.find(name);
+        if(findResult == m_searchableMap.end()) return GameObject(Registry::Get(), entt::null);
+        return GameObject(Registry::Get(), findResult->second);
     }
 };

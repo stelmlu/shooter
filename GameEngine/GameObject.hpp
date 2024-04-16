@@ -9,8 +9,8 @@ public:
         : m_registry(Registry::Get()), m_entity(m_registry.create()) {}
 
     // Constructor to use an existing entity
-    GameObject(entt::entity entity)
-        : m_registry(Registry::Get()), m_entity(entity) {}
+    GameObject(entt::registry& reg, entt::entity entity)
+        : m_registry(reg), m_entity(entity) {}
 
     // Template method to add or replace a component
     template<typename T, typename... Args>
@@ -42,6 +42,10 @@ public:
         if(m_registry.valid(m_entity)) {
             m_registry.destroy(m_entity);
         }
+    }
+
+    bool IsValid() {
+        return m_registry.valid(m_entity);
     }
 
 private:

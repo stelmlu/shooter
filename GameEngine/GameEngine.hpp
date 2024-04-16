@@ -10,3 +10,4 @@
 #include "PositionComponent.hpp"
 #include "VelocityComponent.hpp"
 #include "TextureComponent.hpp"
+#include "SearchableComponent.hpp"
