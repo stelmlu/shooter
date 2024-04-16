@@ -5,6 +5,7 @@
 #include <random>
 #include <entity/registry.hpp>
 #include "GameEngine.hpp"
+#include "TextureAtlas.hpp"
 
 // Add to the game clear EnTT registry and call onApply function
 template<typename Func>
@@ -23,6 +24,9 @@ class Game {
     static std::random_device m_randomDevice;
     static std::mt19937 m_radomGenerator;
     static std::map<std::pair<float, float>, std::uniform_real_distribution<float>> m_randomDistributions;
+
+    static std::unordered_map<std::string, SDL_Rect> m_textureRectCache;
+    static TextureAtlas* m_atlas;
 
     static void onScriptComponentConstructed(entt::registry& reg, entt::entity self);
     static void onScriptComponentDestroyed(entt::registry& reg, entt::entity self);
@@ -47,8 +51,8 @@ class Game {
                 const auto& otherVel = reg.get<VelocityComponent>(other);
 
                 
-                if((pos.x <= (otherPos.x + otherTex.width) && (pos.x + tex.width) >= otherPos.x) &&
-                   (pos.y <= (otherPos.y + otherTex.height) && (pos.y + tex.height) >= otherPos.y)) {
+                if((pos.x <= (otherPos.x + otherTex.rect.w) && (pos.x + tex.rect.w) >= otherPos.x) &&
+                   (pos.y <= (otherPos.y + otherTex.rect.h) && (pos.y + tex.rect.h) >= otherPos.y)) {
                     GameObject go = GameObject(reg, self);
                     GameObject otherGo = GameObject(reg, other);
                     script.OnCollision(go, otherGo);
@@ -62,7 +66,7 @@ public:
     static void Run(const Setting& setting, const std::function<void(void)>& onSetup);
     
     // LoadTexture function declaration
-    static TextureComponent LoadTexture(const std::string& path);
+    // static TextureComponent LoadTexture(const std::string& path);
 
     // Random Generator
     static float GenerateRandom(float from, float to) {
@@ -83,5 +87,15 @@ public:
         auto findResult = m_searchableMap.find(name);
         if(findResult == m_searchableMap.end()) return GameObject(Registry::Get(), entt::null);
         return GameObject(Registry::Get(), findResult->second);
+    }
+
+    static TextureComponent LoadTexture(const std::string& path) {
+        if (m_textureRectCache.find(path) != m_textureRectCache.end()) {
+            return TextureComponent{ m_textureRectCache[path] };
+        } else {
+            SDL_Rect rect = m_atlas->AddImage(path);
+            m_textureRectCache[path] = rect;
+            return TextureComponent{ rect };
+        }
     }
 };

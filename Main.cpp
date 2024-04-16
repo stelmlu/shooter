@@ -11,6 +11,10 @@ int main() {
         .SetSecondPerFrame(SECOND_PER_FRAME);
 
     Game::Run(setting, []() {
+
+        auto a = Game::LoadTexture("gfx/player.png");
+        auto b = Game::LoadTexture("gfx/enemy.png");
+
         AddToGame( Player() );
         AddToGame( SpawnEnemy() );
     });

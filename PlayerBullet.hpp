@@ -9,7 +9,7 @@ class PlayerBullet {
             const auto& position = self.GetComponent<PositionComponent>();
             const auto& texture = self.GetComponent<TextureComponent>();
 
-            if((position.x + texture.width) > SCREEN_WIDTH) {
+            if((position.x + texture.rect.w) > SCREEN_WIDTH) {
                 self.Destroy();
             }
         }
@@ -33,7 +33,7 @@ public:
         auto& textureComponent = gameObject.GetComponent<TextureComponent>();
 
         gameObject.AddComponent<PositionComponent>(
-            m_x + static_cast<float>(textureComponent.width),
-            m_y - static_cast<float>(textureComponent.height) / 2.0f);
+            m_x + static_cast<float>(textureComponent.rect.w),
+            m_y - static_cast<float>(textureComponent.rect.h) / 2.0f);
     }
 };
