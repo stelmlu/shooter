@@ -1,5 +1,5 @@
 #include "Game.hpp"
-#include "Settings.hpp"
+#include "Shooter.hpp"
 #include "Enemy.hpp"
 #include "Component/ScriptComponent.hpp"
 

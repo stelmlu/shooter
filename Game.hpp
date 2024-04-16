@@ -4,7 +4,7 @@
 #include <functional>
 #include <random>
 #include <string>
-#include "Settings.hpp"
+#include "Shooter.hpp"
 #include "Registry.hpp"
 #include "GameObject.hpp"
 #include "Component/ScriptComponent.hpp"

@@ -1,5 +1,5 @@
 #include "Game.hpp"
-#include "Settings.hpp"
+#include "Shooter.hpp"
 #include "Component/PositionComponent.hpp"
 #include "Component/VelocityComponent.hpp"
 #include "Component/ScriptComponent.hpp"
