@@ -24,7 +24,7 @@ void Game::onScriptComponentConstructed(entt::registry &reg, entt::entity entity
 }
 
 void Game::onScriptComponentDestroyed(entt::registry &reg, entt::entity entity)
-{
+{ 
     auto gameObject = GameObject(reg, entity);
     reg.get<ScriptComponent>(entity).OnDestroyed(gameObject);
 }

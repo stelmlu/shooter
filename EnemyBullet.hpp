@@ -52,7 +52,7 @@ public:
 
         auto gameObject = GameObject()
             .AddComponent<VelocityComponent>(dx * ENEMY_BULLET_SPEED, dy * ENEMY_BULLET_SPEED)
-            .AddComponent<TextureComponent>( Game::LoadTexture("gfx/alienBullet.png"))
+            .AddComponent<TextureComponent>( Game::LoadTexture("gfx/enemybullet.png"))
             .AddComponent<ScriptComponent>( EnemyBulletScript() )
             .AddComponent<EnemyBulletTag>();
         

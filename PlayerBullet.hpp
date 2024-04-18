@@ -26,7 +26,7 @@ public:
     void operator()() {
         auto gameObject = GameObject()
             .AddComponent<VelocityComponent>( PLAYER_BULLET_SPEED, 0.0f )
-            .AddComponent<TextureComponent>( Game::LoadTexture("gfx/playerBullet.png") )
+            .AddComponent<TextureComponent>( Game::LoadTexture("gfx/playerbullet.png") )
             .AddComponent<ScriptComponent>(PlayerBulletScript())
             .AddComponent<PlayerBulletTag>();
         
