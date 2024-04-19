@@ -3,6 +3,7 @@
 #include "Registry.hpp"
 #include "GameObject.hpp"
 #include "ColitionLayers.hpp"
+#include "RenderLayers.hpp"
 #include "ScriptComponent.hpp"
 #include "PositionComponent.hpp"
 #include "VelocityComponent.hpp"

@@ -43,9 +43,10 @@ static void invokeMovement(entt::registry &reg, float secondPerFrame)
     });
 }
 
+template<typename RenderLayerTag>
 static void invokeDrawTexture(entt::registry &reg, SDL_Renderer* renderer, TextureAtlas* atlas, float secondPerFrame, float interpolation)
 {
-    auto view = reg.view<const PositionComponent, const TextureComponent>();
+    auto view = reg.view<RenderLayerTag, const PositionComponent, const TextureComponent>();
     view.each([&reg, secondPerFrame, &renderer, &atlas, interpolation](entt::entity entity, const auto &pos, const auto &tex) {
         if(reg.any_of<VelocityComponent>(entity)) {
             auto& vel = reg.get<VelocityComponent>(entity);
@@ -66,10 +67,10 @@ static void invokeDrawTexture(entt::registry &reg, SDL_Renderer* renderer, Textu
     });
 }
 
-template<typename Tag>
-static void invokeOnCollision(entt::registry& reg) {
-    auto view = reg.view<Tag, PositionComponent, TextureComponent, VelocityComponent, ScriptComponent>();
-    auto otherView = reg.view<Tag, PositionComponent, TextureComponent, VelocityComponent>();
+template<typename ColitionLayerTag>
+static void invokeOnColition(entt::registry& reg) {
+    auto view = reg.view<ColitionLayerTag, PositionComponent, TextureComponent, VelocityComponent, ScriptComponent>();
+    auto otherView = reg.view<ColitionLayerTag, PositionComponent, TextureComponent, VelocityComponent>();
     for(entt::entity self : view) {
         const auto& pos = reg.get<PositionComponent>(self);
         const auto& tex = reg.get<TextureComponent>(self);
@@ -184,20 +185,26 @@ void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
         while(lag >= ms_per_update) {
             lag -= ms_per_update;
             invokeCallOnUpdate(reg, m_secondPerFrame);
-            invokeOnCollision<ColitionLayer1Tag>(reg);
-            invokeOnCollision<ColitionLayer2Tag>(reg);
-            invokeOnCollision<ColitionLayer3Tag>(reg);
-            invokeOnCollision<ColitionLayer4Tag>(reg);
-            invokeOnCollision<ColitionLayer5Tag>(reg);
-            invokeOnCollision<ColitionLayer6Tag>(reg);
-            invokeOnCollision<ColitionLayer7Tag>(reg);
-            invokeOnCollision<ColitionLayer8Tag>(reg);
+            invokeOnColition<ColitionLayer1Tag>(reg);
+            invokeOnColition<ColitionLayer2Tag>(reg);
+            invokeOnColition<ColitionLayer3Tag>(reg);
+            invokeOnColition<ColitionLayer4Tag>(reg);
+            invokeOnColition<ColitionLayer5Tag>(reg);
+            invokeOnColition<ColitionLayer6Tag>(reg);
+            invokeOnColition<ColitionLayer7Tag>(reg);
+            invokeOnColition<ColitionLayer8Tag>(reg);
             invokeMovement(reg, m_secondPerFrame);
         }
 
         SDL_RenderClear(m_renderer);
-        invokeDrawTexture(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-
+        invokeDrawTexture<RenderLayer1Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer2Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer3Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer4Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer5Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer6Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer7Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer8Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         SDL_RenderPresent(m_renderer);
     }
 

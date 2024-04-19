@@ -51,10 +51,11 @@ public:
         }
 
         auto gameObject = GameObject()
+            .AddComponent<BulletRenderLayer>()
             .AddComponent<VelocityComponent>(dx * ENEMY_BULLET_SPEED, dy * ENEMY_BULLET_SPEED)
             .AddComponent<TextureComponent>( Game::LoadTexture("gfx/enemybullet.png"))
             .AddComponent<ScriptComponent>( EnemyBulletScript() )
-            .AddComponent<EnemyBulletTag>();
+            .AddComponent<EnemyBulletColitionLayerTag>();
         
         const auto& tex = gameObject.GetComponent<TextureComponent>();
 

@@ -42,12 +42,13 @@ class Enemy {
 public:
     void operator()() {
         auto& self = GameObject()
+            .AddComponent<SpaceShipRenderLayer>()
             .AddComponent<VelocityComponent>( -Game::GenerateRandom(ENEMY_MIN_SPEED, ENEMY_MAX_SPEED), 0.0f)
             .AddComponent<TextureComponent>( Game::LoadTexture("gfx/enemy.png") )
             .AddComponent<ScriptComponent>( EnemyScript() )
             .AddComponent<SpawnEnemyBulletTimeoutComponent>(Game::GenerateRandom(ENEMY_BULLET_SPAWN_TIMEOUT_MIN, ENEMY_BULLET_SPAWN_TIMEOUT_MAX))
-            .AddComponent<PlayerBulletTag>()
-            .AddComponent<EnemyTag>();
+            .AddComponent<PlayerBulletColitionLayerTag>()
+            .AddComponent<EnemyColitionLayerTag>();
         
         const auto& texture = self.GetComponent<TextureComponent>();
         float x = SCREEN_WIDTH + texture.rect.w;

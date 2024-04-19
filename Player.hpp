@@ -26,6 +26,7 @@ class Player {
 public:
     void operator()() {
         GameObject()
+            .AddComponent<SpaceShipRenderLayer>()
             .AddComponent<SearchableComponent>("player")
             .AddComponent<PositionComponent>(Game::GenerateRandom(100.0f, 400.0f), 100.f)
             .AddComponent<VelocityComponent>(0.0f, 0.0f)
@@ -33,7 +34,8 @@ public:
             .AddComponent<KeyStateComponent>()
             .AddComponent<FireCooldown>()
             .AddComponent<ScriptComponent>(PlayerScript{})
-            .AddComponent<EnemyTag>()
-            .AddComponent<EnemyBulletTag>();
+            .AddComponent<EnemyColitionLayerTag>()
+            .AddComponent<EnemyBulletColitionLayerTag>();
+            
     };
 };

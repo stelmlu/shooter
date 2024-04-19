@@ -1,9 +1,13 @@
 #pragma once
 #include "GameEngine/Game.hpp"
 
-using PlayerBulletTag = ColitionLayer1Tag;
-using EnemyTag = ColitionLayer2Tag;
-using EnemyBulletTag = ColitionLayer3Tag;
+using PlayerBulletColitionLayerTag = ColitionLayer1Tag;
+using EnemyColitionLayerTag = ColitionLayer2Tag;
+using EnemyBulletColitionLayerTag = ColitionLayer3Tag;
+
+using SpaceShipRenderLayer = RenderLayer4Tag;
+using BulletRenderLayer = RenderLayer5Tag;
+
 
 // Screen dimension constants
 constexpr int SCREEN_WIDTH = 1280;
