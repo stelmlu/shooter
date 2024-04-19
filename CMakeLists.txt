@@ -1,28 +1,71 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.28.2)
 project(Shooter)
 
-# set(CMAKE_FIND_DEBUG_MODE 1)
+Message("")
+Message( STATUS "CMAKE_SOURCE_DIR: " ${CMAKE_SOURCE_DIR} )
+Message( STATUS "CMAKE_COMMAND: " ${CMAKE_COMMAND} )
+Message( STATUS "CMAKE_VERSION: " ${CMAKE_VERSION} )
+Message( STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER} )
+Message( STATUS "CMAKE_PROJECT_NAME: " ${CMAKE_PROJECT_NAME} )
+Message( STATUS "CMAKE_FINDCMAKE: " ${CMAKE_SOURCE_DIR}/CMAKE )
 
 set(CMAKE_CXX_STANDARD 17) # Use C++17
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # Ensure C++17 is strictly required
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMAKE")
+file(GLOB SOURCES Main.cpp Player.cpp *.hpp GameEngine/*.cpp GameEngine/*.hpp)
 
-# Find the SDL2 library
-find_package(SDL2 REQUIRED)
+Message("")
+Message( STATUS "SOURCE entry point : " ${SOURCES} )
+Message("")
 
-include_directories(${SDL2_INCLUDE_DIRS} "/opt/homebrew/include/SDL2" "/opt/homebrew/include/entt/")
-link_directories("/opt/homebrew/lib")
+add_executable(${PROJECT_NAME} ${SOURCES})
 
-set(SDL2_IMAGE_DIRS "/opt/homebrew/include/SDL2")
-find_package(SDL2_image REQUIRED)
+FIND_PACKAGE(SDL2 REQUIRED)
+Message("")
+Message( STATUS "FINDING SDL2" )
+IF (${SDL2_FOUND})
+    Message( STATUS "SDL2_FOUND: " ${SDL2_FOUND})
+    Message( STATUS "SDL2_INCLUDE_DIR:" ${SDL2_INCLUDE_DIR})
+    Message( STATUS "SDL2_LIBRARY: " ${SDL2_LIBRARY})
+ELSE()
+    Message( STATUS "SDL2_FOUND: " ${SDL2_FOUND})
+    Message( FATAL_ERROR "SDL2 NOT FOUND" )
+ENDIF()
 
-# Include the SDL2 headers
-include_directories(${SDL2_INCLUDE_DIRS} ${})
+FIND_PACKAGE(SDL2_IMAGE)
+Message("")
+Message( STATUS "FINDING SDL2_IMAGE" )
+Message( STATUS "SDL2_IMAGE_FOUND: " ${SDL2_IMAGE_FOUND})
+IF (${SDL2_IMAGE_FOUND})
+    Message( STATUS "SDL2_IMAGE_INCLUDE_DIR: " ${SDL2_IMAGE_INCLUDE_DIR})
+    Message( STATUS "SDL2_IMAGE_LIBRARY: " ${SDL2_IMAGE_LIBRARY})
+ELSE()
+    Message( FATAL_ERROR "SDL2_IMAGE NOT FOUND" )
+ENDIF()
 
-# Define your project's executable
-add_executable(${PROJECT_NAME} Main.cpp GameEngine/Game.cpp Player.cpp)
+FIND_PACKAGE(SDL2TTF)
+Message("")
+Message( STATUS "FINDING SDL2TTF" )
+Message( STATUS "SDL2TTF_FOUND: " ${SDL2TTF_FOUND} )
+IF (${SDL2TTF_FOUND})
+    Message( STATUS "SDL2TTF_INCLUDE_DIR: " ${SDL2TTF_INCLUDE_DIR})
+    Message( STATUS "SDL2TTF_LIBRARY: " ${SDL2TTF_LIBRARY})
+ELSE()
+    Message( FATAL_ERROR "SDL2TTF NOT FOUND" )
+ENDIF()
+Message("")
 
-# Link against the SDL2 library
-target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image)
+FIND_PACKAGE(SDL2Mixer)
+
+Message( STATUS "FINDING SDL2Mixer" )
+Message( STATUS "SDL2Mixer_FOUND: " ${SDL2Mixer_FOUND} )
+
+Message("")
+
+
+INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIR} ${SDL2TTF_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${SDL2Mixer_INCLUDE_DIR} /opt/homebrew/include/entt)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2TTF_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${SDL2Mixer_LIBRARY})
 
 # Gfx directory to copy
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/gfx")
