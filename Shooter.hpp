@@ -1,10 +1,9 @@
 #pragma once
 #include "GameEngine/Game.hpp"
 
-using PlayerTag = RedTag;
-using PlayerBulletTag = BlueTag;
-using EnemyTag = GreenTag;
-using EnemyBulletTag = YellowTag;
+using PlayerBulletTag = ColitionLayer1Tag;
+using EnemyTag = ColitionLayer2Tag;
+using EnemyBulletTag = ColitionLayer3Tag;
 
 // Screen dimension constants
 constexpr int SCREEN_WIDTH = 1280;
@@ -23,8 +22,8 @@ constexpr float PLAYER_DEACCELERATION = 3000.0f;
 // Enemy
 constexpr float ENEMY_SPAWN_TIMEOUT_MIN = 1.2f;
 constexpr float ENEMY_SPAWN_TIMEOUT_MAX = 2.0f;
-constexpr float ENEMY_MIN_SPEED = 200.0f;
-constexpr float ENEMY_MAX_SPEED = 300.0f;
-constexpr float ENEMY_BULLET_SPEED = 200.0f;
-constexpr float ENEMY_BULLET_SPAWN_TIMEOUT_MIN = 0.5f;
-constexpr float ENEMY_BULLET_SPAWN_TIMEOUT_MAX = 1.5f;
+constexpr float ENEMY_MIN_SPEED = 150.0f;
+constexpr float ENEMY_MAX_SPEED = 200.0f;
+constexpr float ENEMY_BULLET_SPEED = 230.0f;
+constexpr float ENEMY_BULLET_SPAWN_TIMEOUT_MIN = 1.5f;
+constexpr float ENEMY_BULLET_SPAWN_TIMEOUT_MAX = 2.5f;

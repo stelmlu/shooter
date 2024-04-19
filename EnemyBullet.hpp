@@ -23,7 +23,7 @@ class EnemyBullet {
                 self.Destroy();
             }
 
-            if(pos.x > SCREEN_HEIGHT) {
+            if(pos.y > SCREEN_HEIGHT) {
                 self.Destroy();
             }
         }

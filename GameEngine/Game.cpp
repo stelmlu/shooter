@@ -160,10 +160,14 @@ void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
         while(lag >= ms_per_update) {
             lag -= ms_per_update;
             invokeCallOnUpdate(reg);
-            invokeOnCollision<RedTag>(reg);
-            invokeOnCollision<BlueTag>(reg);
-            invokeOnCollision<GreenTag>(reg);
-            invokeOnCollision<YellowTag>(reg);
+            invokeOnCollision<ColitionLayer1Tag>(reg);
+            invokeOnCollision<ColitionLayer2Tag>(reg);
+            invokeOnCollision<ColitionLayer3Tag>(reg);
+            invokeOnCollision<ColitionLayer4Tag>(reg);
+            invokeOnCollision<ColitionLayer5Tag>(reg);
+            invokeOnCollision<ColitionLayer6Tag>(reg);
+            invokeOnCollision<ColitionLayer7Tag>(reg);
+            invokeOnCollision<ColitionLayer8Tag>(reg);
             invokeMovement(reg);
         }
 
