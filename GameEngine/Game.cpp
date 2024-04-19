@@ -16,6 +16,80 @@ std::map<std::pair<float, float>, std::uniform_real_distribution<float>> Game::m
 std::unordered_map<std::string, SDL_Rect> Game::m_textureRectCache;
 TextureAtlas* Game::m_atlas;
 
+static void invokeCallOnEvent(entt::registry &reg, const SDL_Event &event)
+{
+    auto view = reg.view<ScriptComponent>();
+    view.each([&reg, &event](entt::entity entity, auto &script) {
+        auto gameObject = GameObject(reg, entity);
+        script.OnEvent(gameObject, event);
+    });
+}
+
+static void invokeCallOnUpdate(entt::registry &reg, float secondPerFrame)
+{
+    auto view = reg.view<ScriptComponent>();
+    view.each([&reg, secondPerFrame](entt::entity entity, auto &script) {
+        auto gameObject = GameObject(reg, entity);
+        script.OnUpdate(gameObject, secondPerFrame);
+    });
+}
+
+static void invokeMovement(entt::registry &reg, float secondPerFrame)
+{
+    auto view = reg.view<PositionComponent, const VelocityComponent>();
+    view.each([secondPerFrame](auto &pos, const auto &vel) {
+        pos.x += vel.dx * secondPerFrame;
+        pos.y += vel.dy * secondPerFrame;
+    });
+}
+
+static void invokeDrawTexture(entt::registry &reg, SDL_Renderer* renderer, TextureAtlas* atlas, float secondPerFrame, float interpolation)
+{
+    auto view = reg.view<const PositionComponent, const TextureComponent>();
+    view.each([&reg, secondPerFrame, &renderer, &atlas, interpolation](entt::entity entity, const auto &pos, const auto &tex) {
+        if(reg.any_of<VelocityComponent>(entity)) {
+            auto& vel = reg.get<VelocityComponent>(entity);
+            SDL_Rect dst = {
+                static_cast<int>(pos.x + vel.dx * secondPerFrame * interpolation + 0.5f),
+                static_cast<int>(pos.y + vel.dy * secondPerFrame * interpolation + 0.5f),
+                tex.rect.w, tex.rect.h
+            };
+            SDL_RenderCopy(renderer, atlas->GetAtlasTexture(), &tex.rect, &dst);
+        }
+        else {
+            SDL_Rect dst = {
+                static_cast<int>(pos.x + 0.5f), static_cast<int>(pos.y + 0.5f),
+                tex.rect.w, tex.rect.h
+            };
+            SDL_RenderCopy(renderer, atlas->GetAtlasTexture(), &tex.rect, &dst);
+        }
+    });
+}
+
+template<typename Tag>
+static void invokeOnCollision(entt::registry& reg) {
+    auto view = reg.view<Tag, PositionComponent, TextureComponent, VelocityComponent, ScriptComponent>();
+    auto otherView = reg.view<Tag, PositionComponent, TextureComponent, VelocityComponent>();
+    for(entt::entity self : view) {
+        const auto& pos = reg.get<PositionComponent>(self);
+        const auto& tex = reg.get<TextureComponent>(self);
+        const auto& vel = reg.get<VelocityComponent>(self);
+        auto& script = reg.get<ScriptComponent>(self);
+        for(entt::entity other : otherView) {
+            if(self == other) continue;
+            const auto& otherPos = reg.get<PositionComponent>(other);
+            const auto& otherTex = reg.get<TextureComponent>(other);
+            const auto& otherVel = reg.get<VelocityComponent>(other);
+            
+            if((pos.x <= (otherPos.x + otherTex.rect.w) && (pos.x + tex.rect.w) >= otherPos.x) &&
+               (pos.y <= (otherPos.y + otherTex.rect.h) && (pos.y + tex.rect.h) >= otherPos.y)) {
+                GameObject go = GameObject(reg, self);
+                GameObject otherGo = GameObject(reg, other);
+                script.OnCollision(go, otherGo);
+            }
+        }
+    }
+}
 
 void Game::onScriptComponentConstructed(entt::registry &reg, entt::entity entity)
 {
@@ -42,56 +116,6 @@ void Game::onSearchableComponentDestroyed(entt::registry& reg, entt::entity enti
     if(findResult != m_searchableMap.end()) {
         m_searchableMap.erase(findResult);
     }
-}
-
-void Game::invokeCallOnEvent(entt::registry &reg, const SDL_Event &event)
-{
-    auto view = reg.view<ScriptComponent>();
-    view.each([&reg, &event](entt::entity entity, auto &script) {
-        auto gameObject = GameObject(reg, entity);
-        script.OnEvent(gameObject, event);
-    });
-}
-
-void Game::invokeCallOnUpdate(entt::registry &reg)
-{
-    auto view = reg.view<ScriptComponent>();
-    view.each([&reg](entt::entity entity, auto &script) {
-        auto gameObject = GameObject(reg, entity);
-        script.OnUpdate(gameObject, m_secondPerFrame);
-    });
-}
-
-void Game::invokeMovement(entt::registry &reg)
-{
-    auto view = reg.view<PositionComponent, const VelocityComponent>();
-    view.each([](auto &pos, const auto &vel) {
-        pos.x += vel.dx * m_secondPerFrame;
-        pos.y += vel.dy * m_secondPerFrame;
-    });
-}
-
-void Game::invokeDrawTexture(entt::registry &reg, float interpolation)
-{
-    auto view = reg.view<const PositionComponent, const TextureComponent>();
-    view.each([&reg, interpolation](entt::entity entity, const auto &pos, const auto &tex) {
-        if(reg.any_of<VelocityComponent>(entity)) {
-            auto& vel = reg.get<VelocityComponent>(entity);
-            SDL_Rect dst = {
-                static_cast<int>(pos.x + vel.dx * m_secondPerFrame * interpolation + 0.5f),
-                static_cast<int>(pos.y + vel.dy * m_secondPerFrame * interpolation + 0.5f),
-                tex.rect.w, tex.rect.h
-            };
-            SDL_RenderCopy(m_renderer, m_atlas->GetAtlasTexture(), &tex.rect, &dst);
-        }
-        else {
-            SDL_Rect dst = {
-                static_cast<int>(pos.x + 0.5f), static_cast<int>(pos.y + 0.5f),
-                tex.rect.w, tex.rect.h
-            };
-            SDL_RenderCopy(m_renderer, m_atlas->GetAtlasTexture(), &tex.rect, &dst);
-        }
-    });
 }
 
 void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
@@ -159,7 +183,7 @@ void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
 
         while(lag >= ms_per_update) {
             lag -= ms_per_update;
-            invokeCallOnUpdate(reg);
+            invokeCallOnUpdate(reg, m_secondPerFrame);
             invokeOnCollision<ColitionLayer1Tag>(reg);
             invokeOnCollision<ColitionLayer2Tag>(reg);
             invokeOnCollision<ColitionLayer3Tag>(reg);
@@ -168,11 +192,11 @@ void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
             invokeOnCollision<ColitionLayer6Tag>(reg);
             invokeOnCollision<ColitionLayer7Tag>(reg);
             invokeOnCollision<ColitionLayer8Tag>(reg);
-            invokeMovement(reg);
+            invokeMovement(reg, m_secondPerFrame);
         }
 
         SDL_RenderClear(m_renderer);
-        invokeDrawTexture(reg, lag / ms_per_update);
+        invokeDrawTexture(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
 
         SDL_RenderPresent(m_renderer);
     }

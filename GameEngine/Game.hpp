@@ -32,34 +32,6 @@ class Game {
     static void onScriptComponentDestroyed(entt::registry& reg, entt::entity self);
     static void onSearchableComponentConstructed(entt::registry& reg, entt::entity entity);
     static void onSearchableComponentDestroyed(entt::registry& reg, entt::entity entity);
-    static void invokeCallOnEvent(entt::registry& reg, const SDL_Event& event);
-    static void invokeCallOnUpdate(entt::registry& reg);
-    static void invokeMovement(entt::registry& reg);
-    static void invokeDrawTexture(entt::registry& reg, float interpolation);
-    template<typename Tag> static void invokeOnCollision(entt::registry& reg) {
-        auto view = reg.view<Tag, PositionComponent, TextureComponent, VelocityComponent, ScriptComponent>();
-        auto otherView = reg.view<Tag, PositionComponent, TextureComponent, VelocityComponent>();
-        for(entt::entity self : view) {
-            const auto& pos = reg.get<PositionComponent>(self);
-            const auto& tex = reg.get<TextureComponent>(self);
-            const auto& vel = reg.get<VelocityComponent>(self);
-            auto& script = reg.get<ScriptComponent>(self);
-            for(entt::entity other : otherView) {
-                if(self == other) continue;
-                const auto& otherPos = reg.get<PositionComponent>(other);
-                const auto& otherTex = reg.get<TextureComponent>(other);
-                const auto& otherVel = reg.get<VelocityComponent>(other);
-
-                
-                if((pos.x <= (otherPos.x + otherTex.rect.w) && (pos.x + tex.rect.w) >= otherPos.x) &&
-                   (pos.y <= (otherPos.y + otherTex.rect.h) && (pos.y + tex.rect.h) >= otherPos.y)) {
-                    GameObject go = GameObject(reg, self);
-                    GameObject otherGo = GameObject(reg, other);
-                    script.OnCollision(go, otherGo);
-                }
-            }
-        }
-    }
 
 public:
     // Run function to initialize SDL window, renderer, and enter event loop
