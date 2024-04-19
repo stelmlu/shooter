@@ -2,16 +2,22 @@
 #include <string>
 
 class Setting {
+public:
+    struct Size {
+        int width, height;
+    };
+
+private:
     std::string m_title;
-    int m_screenWidth;
-    int m_screenHeight;
+    Size m_logicalSize;
+    Size m_windowSize;
     float m_secondPerFrame;
 
 public:
     Setting()
         : m_title("Untitled")
-        , m_screenWidth(512)
-        , m_screenHeight(512)
+        , m_logicalSize({512, 512})
+        , m_windowSize({512, 512})
         , m_secondPerFrame(0.01)
     {}
 
@@ -24,22 +30,22 @@ public:
         return *this;
     }
 
-    int GetScreenWidth() const {
-        return m_screenWidth;
-    }
-
-    Setting& SetScreenWidth(int screenWidth) {
-        m_screenWidth = screenWidth;
+    Setting& SetLogicalSize(int width, int height) {
+        m_logicalSize = { width, height };
         return *this;
     }
 
-    int GetScreenHeight() const {
-        return m_screenHeight;
+    Size GetLogicalSize() const {
+        return m_logicalSize;
     }
 
-    Setting& SetScreenHeight(int screenHeight) {
-        m_screenHeight = screenHeight;
+    Setting& SetWindowSize(int width, int height) {
+        m_windowSize = { width, height };
         return *this;
+    }
+
+    Size GetWindowSize() const {
+        return m_windowSize;
     }
 
     float GetSecondPerFrame() const {

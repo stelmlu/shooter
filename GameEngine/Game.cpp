@@ -92,6 +92,25 @@ static void invokeOnColition(entt::registry& reg) {
     }
 }
 
+static void setupRenderer(SDL_Renderer* renderer,  const Setting& setting) {
+    const auto logicalSize = setting.GetLogicalSize();
+    const auto windowSize = setting.GetWindowSize();
+    // Calculate the aspect ratio of the logical size
+    float aspectRatio = static_cast<float>(logicalSize.width) / static_cast<float>(logicalSize.height);
+
+    // Calculate the maximum possible size maintaining the aspect ratio
+    int renderWidth = windowSize.width;
+    int renderHeight = static_cast<int>(renderWidth / aspectRatio);
+
+    if (renderHeight > windowSize.height) {
+        renderHeight = windowSize.height;
+        renderWidth = static_cast<int>(renderHeight * aspectRatio);
+    }
+
+    // Set the logical size and the drawing area (viewport)
+    SDL_RenderSetLogicalSize(renderer, logicalSize.width, logicalSize.height);
+}
+
 void Game::onScriptComponentConstructed(entt::registry &reg, entt::entity entity)
 {
     auto gameObject = GameObject(reg, entity);
@@ -119,7 +138,7 @@ void Game::onSearchableComponentDestroyed(entt::registry& reg, entt::entity enti
     }
 }
 
-void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
+void Game::Run(Setting& setting, const std::function<void(void)>& onSetup)
 {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -127,11 +146,16 @@ void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
         return;
     }
 
+    const auto windowSize = setting.GetWindowSize();
+
+    // Set the scaling quality to the highest
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
+
     // Create SDL window
     m_window = SDL_CreateWindow(setting.GetTitle().c_str(),
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        setting.GetScreenWidth(), setting.GetScreenHeight(),
-        SDL_WINDOW_SHOWN);
+        windowSize.width, windowSize.height,
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (!m_window) {
         std::cerr << "Failed to create SDL window: " << SDL_GetError() << std::endl;
         SDL_Quit();
@@ -177,6 +201,10 @@ void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
             if (event.type == SDL_QUIT) {
                 quit = true;
             }
+            else if(event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                setting.SetWindowSize(event.window.data1, event.window.data2);
+                setupRenderer(m_renderer, setting);
+            }
             else {
                 invokeCallOnEvent(reg, event);
             }
@@ -196,7 +224,11 @@ void Game::Run(const Setting& setting, const std::function<void(void)>& onSetup)
             invokeMovement(reg, m_secondPerFrame);
         }
 
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255); // Black
         SDL_RenderClear(m_renderer);
+        SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255); // White
+        SDL_Rect rect{0, 0, setting.GetLogicalSize().width, setting.GetLogicalSize().height};
+        SDL_RenderFillRect(m_renderer, &rect);
         invokeDrawTexture<RenderLayer1Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawTexture<RenderLayer2Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawTexture<RenderLayer3Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);

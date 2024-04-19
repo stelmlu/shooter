@@ -35,7 +35,7 @@ class Game {
 
 public:
     // Run function to initialize SDL window, renderer, and enter event loop
-    static void Run(const Setting& setting, const std::function<void(void)>& onSetup);
+    static void Run(Setting& setting, const std::function<void(void)>& onSetup);
     
     // LoadTexture function declaration
     // static TextureComponent LoadTexture(const std::string& path);

@@ -6,8 +6,8 @@
 int main() {
     auto setting = Setting()
         .SetTitle("Shooter")
-        .SetScreenWidth(SCREEN_WIDTH)
-        .SetScreenHeight(SCREEN_HEIGHT)
+        .SetLogicalSize(SCREEN_WIDTH, SCREEN_HEIGHT)
+        .SetWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT)
         .SetSecondPerFrame(SECOND_PER_FRAME);
 
     Game::Run(setting, []() {
