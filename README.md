@@ -12,6 +12,12 @@ Clone the project
 git clone https://github.com/stelmlu/shooter --recurse-submodules
 ```
 
+Create a build folder
+
+```bash
+cmake -S ./ -B build 
+```
+
 Build the game
 
 ```bash
