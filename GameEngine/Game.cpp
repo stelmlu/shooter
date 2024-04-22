@@ -68,25 +68,44 @@ static void invokeDrawTexture(entt::registry &reg, SDL_Renderer* renderer, Textu
 }
 
 template<typename ColitionLayerTag>
-static void invokeOnColition(entt::registry& reg) {
-    auto view = reg.view<ColitionLayerTag, PositionComponent, TextureComponent, VelocityComponent, ScriptComponent>();
-    auto otherView = reg.view<ColitionLayerTag, PositionComponent, TextureComponent, VelocityComponent>();
+static void invokeOnColition(entt::registry& reg, SDL_Renderer* renderer, float dt) {
+    auto view = reg.view<ColitionLayerTag, PositionComponent, TextureComponent, AABBComponent, VelocityComponent, ScriptComponent>();
+    auto otherView = reg.view<ColitionLayerTag, PositionComponent, TextureComponent, AABBComponent, VelocityComponent>();
     for(entt::entity self : view) {
         const auto& pos = reg.get<PositionComponent>(self);
         const auto& tex = reg.get<TextureComponent>(self);
         const auto& vel = reg.get<VelocityComponent>(self);
+        const auto& aabb = reg.get<AABBComponent>(self);
+
+        float ax1 = pos.x + vel.dx*dt + aabb.left;
+        float ay1 = pos.y + vel.dy*dt + aabb.top;
+        float ax2 = pos.x + tex.rect.w + vel.dx*dt + aabb.right;
+        float ay2 = pos.y + tex.rect.h + vel.dy*dt + aabb.bottom;
+
         auto& script = reg.get<ScriptComponent>(self);
+
+        if(aabb.draw == true) {
+            auto rect = SDL_FRect{ ax1, ay1, ax2 - ax1, ay2  - ay1 };
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderDrawRectF(renderer, &rect);
+        }
+
         for(entt::entity other : otherView) {
             if(self == other) continue;
             const auto& otherPos = reg.get<PositionComponent>(other);
             const auto& otherTex = reg.get<TextureComponent>(other);
             const auto& otherVel = reg.get<VelocityComponent>(other);
-            
-            if((pos.x <= (otherPos.x + otherTex.rect.w) && (pos.x + tex.rect.w) >= otherPos.x) &&
-               (pos.y <= (otherPos.y + otherTex.rect.h) && (pos.y + tex.rect.h) >= otherPos.y)) {
+            const auto& otherAabb = reg.get<AABBComponent>(other);
+
+            float bx1 = otherPos.x + otherVel.dx*dt + otherAabb.left;
+            float by1 = otherPos.y + otherVel.dy*dt + otherAabb.top;
+            float bx2 = otherPos.x + otherTex.rect.w + otherVel.dx*dt + otherAabb.right;
+            float by2 = otherPos.y + otherTex.rect.h + otherVel.dy*dt + otherAabb.bottom;
+
+            if((ax1 <= bx2 && ax2 >= bx1) && (ay1 <= by2 && ay2 >= by1)) {
                 GameObject go = GameObject(reg, self);
                 GameObject otherGo = GameObject(reg, other);
-                script.OnCollision(go, otherGo);
+                script.OnCollision(go, otherGo);                
             }
         }
     }
@@ -210,25 +229,23 @@ void Game::Run(Setting& setting, const std::function<void(void)>& onSetup)
             }
         }
 
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255); // Black
+        SDL_RenderClear(m_renderer);
+
         while(lag >= ms_per_update) {
             lag -= ms_per_update;
             invokeCallOnUpdate(reg, m_secondPerFrame);
-            invokeOnColition<ColitionLayer1Tag>(reg);
-            invokeOnColition<ColitionLayer2Tag>(reg);
-            invokeOnColition<ColitionLayer3Tag>(reg);
-            invokeOnColition<ColitionLayer4Tag>(reg);
-            invokeOnColition<ColitionLayer5Tag>(reg);
-            invokeOnColition<ColitionLayer6Tag>(reg);
-            invokeOnColition<ColitionLayer7Tag>(reg);
-            invokeOnColition<ColitionLayer8Tag>(reg);
+            invokeOnColition<ColitionLayer1Tag>(reg, m_renderer, m_secondPerFrame);
+            invokeOnColition<ColitionLayer2Tag>(reg, m_renderer, m_secondPerFrame);
+            invokeOnColition<ColitionLayer3Tag>(reg, m_renderer, m_secondPerFrame);
+            invokeOnColition<ColitionLayer4Tag>(reg, m_renderer, m_secondPerFrame);
+            invokeOnColition<ColitionLayer5Tag>(reg, m_renderer, m_secondPerFrame);
+            invokeOnColition<ColitionLayer6Tag>(reg, m_renderer, m_secondPerFrame);
+            invokeOnColition<ColitionLayer7Tag>(reg, m_renderer, m_secondPerFrame);
+            invokeOnColition<ColitionLayer8Tag>(reg, m_renderer, m_secondPerFrame);
             invokeMovement(reg, m_secondPerFrame);
         }
 
-        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255); // Black
-        SDL_RenderClear(m_renderer);
-        SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255); // White
-        SDL_Rect rect{0, 0, setting.GetLogicalSize().width, setting.GetLogicalSize().height};
-        SDL_RenderFillRect(m_renderer, &rect);
         invokeDrawTexture<RenderLayer1Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawTexture<RenderLayer2Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawTexture<RenderLayer3Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);

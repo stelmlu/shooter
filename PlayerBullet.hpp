@@ -29,7 +29,8 @@ public:
             .AddComponent<VelocityComponent>( PLAYER_BULLET_SPEED, 0.0f )
             .AddComponent<TextureComponent>( Game::LoadTexture("gfx/playerbullet.png") )
             .AddComponent<ScriptComponent>(PlayerBulletScript())
-            .AddComponent<PlayerBulletColitionLayerTag>();
+            .AddComponent<PlayerBulletColitionLayerTag>()
+            .AddComponent<AABBComponent>(0.0f, 0.0f, 0.0f, 0.0f, false);
         
         auto& textureComponent = gameObject.GetComponent<TextureComponent>();
 

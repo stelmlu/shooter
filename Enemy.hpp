@@ -48,7 +48,8 @@ public:
             .AddComponent<ScriptComponent>( EnemyScript() )
             .AddComponent<SpawnEnemyBulletTimeoutComponent>(Game::GenerateRandom(ENEMY_BULLET_SPAWN_TIMEOUT_MIN, ENEMY_BULLET_SPAWN_TIMEOUT_MAX))
             .AddComponent<PlayerBulletColitionLayerTag>()
-            .AddComponent<EnemyColitionLayerTag>();
+            .AddComponent<EnemyColitionLayerTag>()
+            .AddComponent<AABBComponent>(20.0f, 0.0f, -20.0f, 0.0f, false);
         
         const auto& texture = self.GetComponent<TextureComponent>();
         float x = SCREEN_WIDTH + texture.rect.w;

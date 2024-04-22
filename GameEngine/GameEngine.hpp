@@ -9,3 +9,4 @@
 #include "VelocityComponent.hpp"
 #include "TextureComponent.hpp"
 #include "SearchableComponent.hpp"
+#include "AABBComponent.hpp"

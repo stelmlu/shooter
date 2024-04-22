@@ -35,7 +35,7 @@ public:
             .AddComponent<FireCooldown>()
             .AddComponent<ScriptComponent>(PlayerScript{})
             .AddComponent<EnemyColitionLayerTag>()
-            .AddComponent<EnemyBulletColitionLayerTag>();
-            
+            .AddComponent<EnemyBulletColitionLayerTag>()
+            .AddComponent<AABBComponent>(20.0f, 0.0f, -20.0f, 0.0f, false);
     };
 };

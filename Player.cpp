@@ -105,10 +105,8 @@ void Player::PlayerScript::OnUpdate(GameObject& self, float dt) {
 
     if(keyState.fireKeyDown && fireCooldown.timeout <= 0.0f) {
         AddToGame(PlayerBullet(position.x + texture.rect.w, position.y + texture.rect.h / 2.0f));
-
         fireCooldown.timeout = PLAYER_FIRE_COOLDOWN_TIME;
     }
 
     fireCooldown.timeout -= dt;
-
 }
