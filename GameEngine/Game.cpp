@@ -100,8 +100,8 @@ static void invokeDrawAddBlendTexture(entt::registry &reg, SDL_Renderer* rendere
 
     SDL_SetTextureColorMod(atlas->GetAtlasTexture(), 255, 255, 255);
     SDL_SetTextureAlphaMod(atlas->GetAtlasTexture(), 255);
-    SDL_SetTextureBlendMode(atlas->GetAtlasTexture(), SDL_BLENDMODE_NONE);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+    SDL_SetTextureBlendMode(atlas->GetAtlasTexture(), SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 }
 
 template<typename ColitionLayerTag>
