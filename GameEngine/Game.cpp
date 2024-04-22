@@ -48,6 +48,7 @@ static void invokeDrawTexture(entt::registry &reg, SDL_Renderer* renderer, Textu
 {
     auto view = reg.view<RenderLayerTag, const PositionComponent, const TextureComponent>();
     view.each([&reg, secondPerFrame, &renderer, &atlas, interpolation](entt::entity entity, const auto &pos, const auto &tex) {
+        if(reg.any_of<AddBlenderComponent>(entity)) return;
         if(reg.any_of<VelocityComponent>(entity)) {
             auto& vel = reg.get<VelocityComponent>(entity);
             SDL_Rect dst = {
@@ -65,6 +66,42 @@ static void invokeDrawTexture(entt::registry &reg, SDL_Renderer* renderer, Textu
             SDL_RenderCopy(renderer, atlas->GetAtlasTexture(), &tex.rect, &dst);
         }
     });
+}
+
+template<typename RenderLayerTag>
+static void invokeDrawAddBlendTexture(entt::registry &reg, SDL_Renderer* renderer, TextureAtlas* atlas, float secondPerFrame, float interpolation)
+{
+    auto view = reg.view<RenderLayerTag, const PositionComponent, const TextureComponent, AddBlenderComponent>();
+    
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_ADD);
+    SDL_SetTextureBlendMode(atlas->GetAtlasTexture(), SDL_BLENDMODE_ADD);
+    
+    view.each([&reg, secondPerFrame, &renderer, &atlas, interpolation](entt::entity entity, const auto &pos, const auto &tex, auto& addBlender) {
+        SDL_SetTextureColorMod(atlas->GetAtlasTexture(), addBlender.r, addBlender.g, addBlender.b);
+        SDL_SetTextureAlphaMod(atlas->GetAtlasTexture(), addBlender.a);
+
+        if(reg.any_of<VelocityComponent>(entity)) {
+            auto& vel = reg.get<VelocityComponent>(entity);
+            SDL_Rect dst = {
+                static_cast<int>(pos.x + vel.dx * secondPerFrame * interpolation + 0.5f),
+                static_cast<int>(pos.y + vel.dy * secondPerFrame * interpolation + 0.5f),
+                tex.rect.w, tex.rect.h
+            };
+            SDL_RenderCopy(renderer, atlas->GetAtlasTexture(), &tex.rect, &dst);
+        }
+        else {
+            SDL_Rect dst = {
+                static_cast<int>(pos.x + 0.5f), static_cast<int>(pos.y + 0.5f),
+                tex.rect.w, tex.rect.h
+            };
+            SDL_RenderCopy(renderer, atlas->GetAtlasTexture(), &tex.rect, &dst);
+        }
+    });
+
+    SDL_SetTextureColorMod(atlas->GetAtlasTexture(), 255, 255, 255);
+    SDL_SetTextureAlphaMod(atlas->GetAtlasTexture(), 255);
+    SDL_SetTextureBlendMode(atlas->GetAtlasTexture(), SDL_BLENDMODE_NONE);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 }
 
 template<typename ColitionLayerTag>
@@ -245,7 +282,6 @@ void Game::Run(Setting& setting, const std::function<void(void)>& onSetup)
             invokeOnColition<ColitionLayer8Tag>(reg, m_renderer, m_secondPerFrame);
             invokeMovement(reg, m_secondPerFrame);
         }
-
         invokeDrawTexture<RenderLayer1Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawTexture<RenderLayer2Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawTexture<RenderLayer3Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
@@ -254,6 +290,16 @@ void Game::Run(Setting& setting, const std::function<void(void)>& onSetup)
         invokeDrawTexture<RenderLayer6Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawTexture<RenderLayer7Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawTexture<RenderLayer8Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+
+        invokeDrawAddBlendTexture<RenderLayer1Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawAddBlendTexture<RenderLayer2Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawAddBlendTexture<RenderLayer3Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawAddBlendTexture<RenderLayer4Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawAddBlendTexture<RenderLayer5Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawAddBlendTexture<RenderLayer6Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawAddBlendTexture<RenderLayer7Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawAddBlendTexture<RenderLayer8Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+
         SDL_RenderPresent(m_renderer);
     }
 

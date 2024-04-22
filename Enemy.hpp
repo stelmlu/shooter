@@ -1,6 +1,7 @@
 #include "Shooter.hpp"
 #include "GameEngine/GameEngine.hpp"
 #include "EnemyBullet.hpp"
+#include "Explosion.hpp"
 
 class Enemy {
     struct SpawnEnemyBulletTimeoutComponent {

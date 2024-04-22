@@ -1,5 +1,7 @@
 #include "Shooter.hpp"
 #include "GameEngine/Game.hpp"
+#include "GameEngine/GameEngine.hpp"
+#include "Explosion.hpp"
 
 class PlayerBullet {
     float m_x, m_y;
@@ -15,6 +17,12 @@ class PlayerBullet {
         }
 
         void OnCollision(GameObject& self, GameObject& other) {
+            const auto& position = other.GetComponent<PositionComponent>();
+            const auto& texture = other.GetComponent<TextureComponent>();
+            for(int i=0; i<10; i++) {
+                AddToGame(Explosion(position.x + texture.rect.w / 2.0f, position.y + texture.rect.h / 2.0f));
+            }
+
             self.Destroy();
             other.Destroy();
         }

@@ -1,5 +1,6 @@
 #include "Shooter.hpp"
 #include "GameEngine/Game.hpp"
+#include "Explosion.hpp"
 
 class Player {
     struct KeyStateComponent {
@@ -18,6 +19,12 @@ class Player {
         void OnEvent(GameObject& self, const SDL_Event& event);
         void OnUpdate(GameObject& self, float dt);
         void OnCollision(GameObject& self, GameObject& other) {
+            const auto& position = other.GetComponent<PositionComponent>();
+            const auto& texture = other.GetComponent<TextureComponent>();
+            for(int i=0; i<15; i++) {
+                AddToGame(Explosion(position.x + texture.rect.w / 2.0f, position.y + texture.rect.h / 2.0f));
+            }
+
             self.Destroy();
             other.Destroy();
         }

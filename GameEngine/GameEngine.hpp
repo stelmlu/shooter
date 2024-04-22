@@ -10,3 +10,4 @@
 #include "TextureComponent.hpp"
 #include "SearchableComponent.hpp"
 #include "AABBComponent.hpp"
+#include "AddBlenderComponent.hpp"
