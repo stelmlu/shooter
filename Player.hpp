@@ -43,6 +43,7 @@ public:
             .AddComponent<ScriptComponent>(PlayerScript{})
             .AddComponent<EnemyColitionLayerTag>()
             .AddComponent<EnemyBulletColitionLayerTag>()
+            .AddComponent<ScorePodLayerTag>()
             .AddComponent<AABBComponent>(20.0f, 0.0f, -20.0f, 0.0f, false);
     };
 };
