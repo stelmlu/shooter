@@ -282,23 +282,22 @@ void Game::Run(Setting& setting, const std::function<void(void)>& onSetup)
             invokeOnColition<ColitionLayer8Tag>(reg, m_renderer, m_secondPerFrame);
             invokeMovement(reg, m_secondPerFrame);
         }
-        invokeDrawTexture<RenderLayer1Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-        invokeDrawTexture<RenderLayer2Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-        invokeDrawTexture<RenderLayer3Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-        invokeDrawTexture<RenderLayer4Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-        invokeDrawTexture<RenderLayer5Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-        invokeDrawTexture<RenderLayer6Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-        invokeDrawTexture<RenderLayer7Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-        invokeDrawTexture<RenderLayer8Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
-
         invokeDrawAddBlendTexture<RenderLayer1Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer1Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawAddBlendTexture<RenderLayer2Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer2Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawAddBlendTexture<RenderLayer3Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer3Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawAddBlendTexture<RenderLayer4Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer4Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawAddBlendTexture<RenderLayer5Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer5Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawAddBlendTexture<RenderLayer6Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer6Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawAddBlendTexture<RenderLayer7Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer7Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
         invokeDrawAddBlendTexture<RenderLayer8Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
+        invokeDrawTexture<RenderLayer8Tag>(reg, m_renderer, m_atlas, m_secondPerFrame, lag / ms_per_update);
 
         SDL_RenderPresent(m_renderer);
     }

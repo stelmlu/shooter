@@ -2,6 +2,7 @@
 #include "GameEngine/GameEngine.hpp"
 #include "Player.hpp"
 #include "SpawnEnemy.hpp"
+#include "SpawnStar.hpp"
 
 int main() {
     auto setting = Setting()
@@ -17,5 +18,6 @@ int main() {
 
         AddToGame( Player() );
         AddToGame( SpawnEnemy() );
+        AddToGame( SpawnStar() );
     });
 }

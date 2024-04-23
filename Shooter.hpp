@@ -5,6 +5,7 @@ using PlayerBulletColitionLayerTag = ColitionLayer1Tag;
 using EnemyColitionLayerTag = ColitionLayer2Tag;
 using EnemyBulletColitionLayerTag = ColitionLayer3Tag;
 
+using StarBackgroundLayer = RenderLayer1Tag;
 using SpaceShipRenderLayer = RenderLayer4Tag;
 using BulletRenderLayer = RenderLayer5Tag;
 
