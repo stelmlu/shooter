@@ -3,6 +3,7 @@
 #include "Shooter.hpp"
 #include "GameEngine/GameEngine.hpp"
 #include "GameEngine/Game.hpp"
+#include "ScoreLabel.hpp"
 
 constexpr float pi = 3.14156926;
 
@@ -21,7 +22,9 @@ class ScorePod {
 
         void OnCollision(GameObject& self, GameObject& other) {
             self.Destroy();
-            // TODO, increate score here!
+
+            // Update the score with one
+            Game::FindGameObject("score").GetComponent<ScoreLabel::ScoreLabelComponent>().score++;
         }
     };
 

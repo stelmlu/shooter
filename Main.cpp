@@ -3,6 +3,7 @@
 #include "Player.hpp"
 #include "SpawnEnemy.hpp"
 #include "SpawnStar.hpp"
+#include "ScoreLabel.hpp"
 
 int main() {
     auto setting = Setting()
@@ -19,5 +20,6 @@ int main() {
         AddToGame( Player() );
         AddToGame( SpawnEnemy() );
         AddToGame( SpawnStar() );
+        AddToGame( ScoreLabel() );
     });
 }

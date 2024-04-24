@@ -9,6 +9,7 @@ using ScorePodLayerTag = ColitionLayer4Tag;
 using StarBackgroundLayer = RenderLayer1Tag;
 using SpaceShipRenderLayer = RenderLayer4Tag;
 using BulletRenderLayer = RenderLayer5Tag;
+using TextRenderLayer = RenderLayer6Tag;
 
 
 // Screen dimension constants
