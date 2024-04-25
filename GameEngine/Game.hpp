@@ -1,11 +1,11 @@
 #pragma once
 #include <SDL.h>
+#include <SDL_image.h>
 #include <map>
 #include <unordered_map>
 #include <random>
 #include <entity/registry.hpp>
 #include "GameEngine.hpp"
-#include "TextureAtlas.hpp"
 
 // Add to the game clear EnTT registry and call onApply function
 template<typename Func>
@@ -25,8 +25,7 @@ class Game {
     static std::mt19937 m_radomGenerator;
     static std::map<std::pair<float, float>, std::uniform_real_distribution<float>> m_randomDistributions;
 
-    static std::unordered_map<std::string, SDL_Rect> m_textureRectCache;
-    static TextureAtlas* m_atlas;
+    static std::unordered_map<std::string, TextureComponent> m_textureRectCache;
 
     static void onScriptComponentConstructed(entt::registry& reg, entt::entity self);
     static void onScriptComponentDestroyed(entt::registry& reg, entt::entity self);
@@ -36,9 +35,6 @@ class Game {
 public:
     // Run function to initialize SDL window, renderer, and enter event loop
     static void Run(Setting& setting, const std::function<void(void)>& onSetup);
-    
-    // LoadTexture function declaration
-    // static TextureComponent LoadTexture(const std::string& path);
 
     // Random Generator
     static float GenerateRandom(float from, float to) {
@@ -65,9 +61,13 @@ public:
         if (m_textureRectCache.find(path) != m_textureRectCache.end()) {
             return TextureComponent{ m_textureRectCache[path] };
         } else {
-            SDL_Rect rect = m_atlas->AddImage(path);
-            m_textureRectCache[path] = rect;
-            return TextureComponent{ rect };
+            auto textureComponent = TextureComponent{ IMG_LoadTexture(m_renderer, path.c_str()) };
+            int w, h;
+            SDL_QueryTexture(textureComponent.texture, 0, 0, &w, &h);
+            textureComponent.width = static_cast<float>(w);
+            textureComponent.height = static_cast<float>(h);
+            m_textureRectCache[path] = textureComponent;
+            return textureComponent;
         }
     }
 };

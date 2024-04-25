@@ -12,10 +12,10 @@ class ScorePod {
 
     struct ScorePodScript: public Script {
         void OnUpdate(GameObject& self, float dt) {
-            const auto& rect = self.GetComponent<TextureComponent>().rect;
+            const auto& tex = self.GetComponent<TextureComponent>();
             const auto& pos = self.GetComponent<PositionComponent>();
 
-            if((pos.x > SCREEN_WIDTH || pos.x < -rect.w) || (pos.y > SCREEN_HEIGHT || pos.y < -rect.h)) {
+            if((pos.x > SCREEN_WIDTH || pos.x < -tex.width) || (pos.y > SCREEN_HEIGHT || pos.y < -tex.height)) {
                 self.Destroy();
             }
         }

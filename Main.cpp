@@ -1,9 +1,7 @@
 #include "Shooter.hpp"
 #include "GameEngine/GameEngine.hpp"
-#include "Player.hpp"
-#include "SpawnEnemy.hpp"
-#include "SpawnStar.hpp"
-#include "ScoreLabel.hpp"
+#include "GameEngine/Game.hpp"
+#include "Menu.hpp"
 
 int main() {
     auto setting = Setting()
@@ -13,13 +11,34 @@ int main() {
         .SetSecondPerFrame(SECOND_PER_FRAME);
 
     Game::Run(setting, []() {
+        // Preload the images
+        Game::LoadTexture("gfx/title.png");
+        Game::LoadTexture("gfx/enemy.png");
+        Game::LoadTexture("gfx/enemybullet.png");
+        Game::LoadTexture("gfx/explosion.png");
+        Game::LoadTexture("gfx/num0.png");
+        Game::LoadTexture("gfx/num1.png");
+        Game::LoadTexture("gfx/num2.png");
+        Game::LoadTexture("gfx/num3.png");
+        Game::LoadTexture("gfx/num4.png");
+        Game::LoadTexture("gfx/num5.png");
+        Game::LoadTexture("gfx/num6.png");
+        Game::LoadTexture("gfx/num7.png");
+        Game::LoadTexture("gfx/num8.png");
+        Game::LoadTexture("gfx/num9.png");
+        Game::LoadTexture("gfx/player.png");
+        Game::LoadTexture("gfx/playerbullet.png");
+        Game::LoadTexture("gfx/points.png");
+        Game::LoadTexture("gfx/star1.png");
+        Game::LoadTexture("gfx/star2.png");
+        Game::LoadTexture("gfx/star3.png");
+        Game::LoadTexture("gfx/star4.png");
+        Game::LoadTexture("gfx/star5.png");
+        Game::LoadTexture("gfx/textscore.png");
+        Game::LoadTexture("gfx/textinfo.png");
+        Game::LoadTexture("gfx/textgameover.png");
 
-        auto a = Game::LoadTexture("gfx/player.png");
-        auto b = Game::LoadTexture("gfx/enemy.png");
-
-        AddToGame( Player() );
-        AddToGame( SpawnEnemy() );
-        AddToGame( SpawnStar() );
-        AddToGame( ScoreLabel() );
+        // Show the menu
+        AddToGame( Menu() );
     });
 }

@@ -11,11 +11,11 @@ class EnemyBullet {
             const auto& pos = self.GetComponent<PositionComponent>();
             const auto& tex = self.GetComponent<TextureComponent>();
 
-            if((pos.x + tex.rect.w) < 0.0f) {
+            if((pos.x + tex.width) < 0.0f) {
                 self.Destroy();
             }
 
-            if((pos.y + tex.rect.h) < 0.0f) {
+            if((pos.y + tex.height) < 0.0f) {
                 self.Destroy();
             }
 
@@ -61,7 +61,7 @@ public:
         const auto& tex = gameObject.GetComponent<TextureComponent>();
 
         gameObject.AddComponent<PositionComponent>(
-            m_enemyX + tex.rect.w / 2.0f,
-            m_enemyY + tex.rect.h / 2.0f);
+            m_enemyX + tex.width / 2.0f,
+            m_enemyY + tex.height / 2.0f);
     }
 };

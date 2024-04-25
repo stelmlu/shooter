@@ -15,7 +15,7 @@ class Enemy {
             auto& spawnTimeout = self.GetComponent<SpawnEnemyBulletTimeoutComponent>().timeout;
 
             // Destroy the enemy if it leaves the screen
-            if((position.x + texture.rect.w) < 0.0f) {
+            if((position.x + texture.width) < 0.0f) {
                 self.Destroy();
             }
 
@@ -27,10 +27,10 @@ class Enemy {
                     const auto& playerPos = player.GetComponent<PositionComponent>();
                     const auto& playerTex = player.GetComponent<TextureComponent>();
                     AddToGame(EnemyBullet(
-                        position.x + texture.rect.w / 2.0f,
-                        position.y + texture.rect.h / 2.0f,
-                        playerPos.x + playerTex.rect.w / 2.0f,
-                        playerPos.y + playerTex.rect.h / 2.0f));
+                        position.x + texture.width / 2.0f,
+                        position.y + texture.height / 2.0f,
+                        playerPos.x + playerTex.width / 2.0f,
+                        playerPos.y + playerTex.height / 2.0f));
                 }
 
                 spawnTimeout = Game::GenerateRandom(ENEMY_BULLET_SPAWN_TIMEOUT_MIN, ENEMY_BULLET_SPAWN_TIMEOUT_MAX);
@@ -53,8 +53,8 @@ public:
             .AddComponent<AABBComponent>(20.0f, 0.0f, -20.0f, 0.0f, false);
         
         const auto& texture = self.GetComponent<TextureComponent>();
-        float x = SCREEN_WIDTH + texture.rect.w;
-        float y = Game::GenerateRandom(0.0f, SCREEN_HEIGHT - texture.rect.h);
+        float x = SCREEN_WIDTH + texture.width;
+        float y = Game::GenerateRandom(0.0f, SCREEN_HEIGHT - texture.width);
         self.AddComponent<PositionComponent>(x, y);
     }
 };

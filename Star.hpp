@@ -9,7 +9,7 @@ class Star {
 
     struct StarScript: public Script {
         void OnUpdate(GameObject& self, float dt) {
-            const auto width = self.GetComponent<TextureComponent>().rect.w;
+            const auto width = self.GetComponent<TextureComponent>().width;
             const auto& pos = self.GetComponent<PositionComponent>(); 
 
             if(pos.x < -width) {
@@ -44,9 +44,9 @@ public:
             gameObject.AddComponent<TextureComponent>(Game::LoadTexture("gfx/star4.png"));
         }
 
-        auto rect = gameObject.GetComponent<TextureComponent>().rect;
+        const auto& tex = gameObject.GetComponent<TextureComponent>();
         gameObject.AddComponent<PositionComponent>(
-            static_cast<float>(m_x + rect.w), Game::GenerateRandom(0.0f, SCREEN_HEIGHT - rect.h));
+            static_cast<float>(m_x + tex.width), Game::GenerateRandom(0.0f, SCREEN_HEIGHT - tex.height));
 
         randomNumber = Game::GenerateRandom(1.0f, 4.0f);
         uint8_t r = 255, g = 255, b = 255, a;

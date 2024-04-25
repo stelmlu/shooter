@@ -22,7 +22,7 @@ class Player {
             const auto& position = other.GetComponent<PositionComponent>();
             const auto& texture = other.GetComponent<TextureComponent>();
             for(int i=0; i<15; i++) {
-                AddToGame(Explosion(position.x + texture.rect.w / 2.0f, position.y + texture.rect.h / 2.0f));
+                AddToGame(Explosion(position.x + texture.width / 2.0f, position.y + texture.height / 2.0f));
             }
 
             self.Destroy();

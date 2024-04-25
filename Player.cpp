@@ -92,11 +92,11 @@ void Player::PlayerScript::OnUpdate(GameObject& self, float dt) {
     float nextX = position.x + velocity.dx * dt;
     float nextY = position.y + velocity.dy * dt;
 
-    if (nextX < 0 || (nextX + texture.rect.w) > SCREEN_WIDTH) {
+    if (nextX < 0 || (nextX + texture.width) > SCREEN_WIDTH) {
         velocity.dx = 0;
     }
 
-    if (nextY < 0 || (nextY + texture.rect.h) > SCREEN_HEIGHT) {
+    if (nextY < 0 || (nextY + texture.height) > SCREEN_HEIGHT) {
         velocity.dy = 0;
     }
 
@@ -104,7 +104,7 @@ void Player::PlayerScript::OnUpdate(GameObject& self, float dt) {
     auto& fireCooldown = self.GetComponent<FireCooldown>();
 
     if(keyState.fireKeyDown && fireCooldown.timeout <= 0.0f) {
-        AddToGame(PlayerBullet(position.x + texture.rect.w, position.y + texture.rect.h / 2.0f));
+        AddToGame(PlayerBullet(position.x + texture.width, position.y + texture.height / 2.0f));
         fireCooldown.timeout = PLAYER_FIRE_COOLDOWN_TIME;
     }
 

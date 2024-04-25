@@ -2,5 +2,6 @@
 #include <SDL.h>
 
 struct TextureComponent {
-    SDL_Rect rect;
+    SDL_Texture* texture;
+    float width, height;
 };

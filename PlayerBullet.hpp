@@ -12,7 +12,7 @@ class PlayerBullet {
             const auto& position = self.GetComponent<PositionComponent>();
             const auto& texture = self.GetComponent<TextureComponent>();
 
-            if((position.x + texture.rect.w) > SCREEN_WIDTH) {
+            if((position.x + texture.width) > SCREEN_WIDTH) {
                 self.Destroy();
             }
         }
@@ -21,10 +21,10 @@ class PlayerBullet {
             const auto& position = other.GetComponent<PositionComponent>();
             const auto& texture = other.GetComponent<TextureComponent>();
             for(int i=0; i<10; i++) {
-                AddToGame(Explosion(position.x + texture.rect.w / 2.0f, position.y + texture.rect.h / 2.0f));
+                AddToGame(Explosion(position.x + texture.width / 2.0f, position.y + texture.height / 2.0f));
             }
 
-            AddToGame( ScorePod(position.x + texture.rect.w / 2.0f, position.y + texture.rect.h / 2.0f) );
+            AddToGame( ScorePod(position.x + texture.width / 2.0f, position.y + texture.height / 2.0f) );
 
             self.Destroy();
             other.Destroy();
@@ -46,7 +46,7 @@ public:
         auto& textureComponent = gameObject.GetComponent<TextureComponent>();
 
         gameObject.AddComponent<PositionComponent>(
-            m_x + static_cast<float>(textureComponent.rect.w),
-            m_y - static_cast<float>(textureComponent.rect.h) / 2.0f);
+            m_x + static_cast<float>(textureComponent.width),
+            m_y - static_cast<float>(textureComponent.height) / 2.0f);
     }
 };
