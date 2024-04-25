@@ -1,6 +1,8 @@
+#pragma once
 #include "Shooter.hpp"
 #include "GameEngine/Game.hpp"
 #include "Explosion.hpp"
+#include "GameOverTimeoutComponent.hpp"
 
 class Player {
     struct KeyStateComponent {
@@ -25,6 +27,9 @@ class Player {
                 AddToGame(Explosion(position.x + texture.width / 2.0f, position.y + texture.height / 2.0f));
             }
 
+            Game::FindGameObject("playground")
+                .AddComponent<GameOverTimeoutComponent>( true, 1.0f ); // 1s
+
             self.Destroy();
             other.Destroy();
         }
@@ -32,10 +37,9 @@ class Player {
 
 public:
     void operator()() {
-        GameObject()
+        auto player = GameObject()
             .AddComponent<SpaceShipRenderLayer>()
             .AddComponent<SearchableComponent>("player")
-            .AddComponent<PositionComponent>(Game::GenerateRandom(100.0f, 400.0f), 100.f)
             .AddComponent<VelocityComponent>(0.0f, 0.0f)
             .AddComponent<TextureComponent>(Game::LoadTexture("gfx/player.png"))
             .AddComponent<KeyStateComponent>()
@@ -45,5 +49,9 @@ public:
             .AddComponent<EnemyBulletColitionLayerTag>()
             .AddComponent<ScorePodLayerTag>()
             .AddComponent<AABBComponent>(20.0f, 0.0f, -20.0f, 0.0f, false);
+        
+        const auto& tex = player.GetComponent<TextureComponent>();
+
+        player.AddComponent<PositionComponent>(SCREEN_WIDTH / 2.0f - tex.width / 2.0f, SCREEN_HEIGHT / 2.0f - tex.height / 2.0f );
     };
 };

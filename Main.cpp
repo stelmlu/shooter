@@ -2,6 +2,7 @@
 #include "GameEngine/GameEngine.hpp"
 #include "GameEngine/Game.hpp"
 #include "Menu.hpp"
+#include "GameOver.hpp"
 
 int main() {
     auto setting = Setting()
@@ -41,4 +42,10 @@ int main() {
         // Show the menu
         AddToGame( Menu() );
     });
+}
+
+void GameOver::GameOverScript::OnEvent(GameObject& self, const SDL_Event& event) {
+    if(event.type == SDL_KEYDOWN && event.key.repeat == false && event.key.keysym.sym == SDLK_SPACE) {
+        AddToGame( Menu(), true );
+    }
 }
